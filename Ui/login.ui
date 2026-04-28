@@ -26,11 +26,17 @@
    <widget class="QFrame" name="log_inFrame">
     <property name="geometry">
      <rect>
-      <x>350</x>
-      <y>70</y>
-      <width>341</width>
-      <height>391</height>
+      <x>320</x>
+      <y>10</y>
+      <width>391</width>
+      <height>501</height>
      </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
     <property name="styleSheet">
      <string notr="true">border-radius:30px;
@@ -45,21 +51,36 @@ background-color: rgb(178, 100, 168);</string>
     <widget class="QLabel" name="label">
      <property name="geometry">
       <rect>
-       <x>150</x>
-       <y>80</y>
-       <width>49</width>
-       <height>16</height>
+       <x>90</x>
+       <y>0</y>
+       <width>200</width>
+       <height>200</height>
       </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>200</width>
+       <height>200</height>
+      </size>
      </property>
      <property name="text">
       <string>LOGO</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
     <widget class="QLabel" name="label_2">
      <property name="geometry">
       <rect>
-       <x>130</x>
-       <y>110</y>
+       <x>150</x>
+       <y>180</y>
        <width>161</width>
        <height>16</height>
       </rect>
@@ -71,8 +92,8 @@ background-color: rgb(178, 100, 168);</string>
     <widget class="QLabel" name="label_3">
      <property name="geometry">
       <rect>
-       <x>40</x>
-       <y>150</y>
+       <x>60</x>
+       <y>210</y>
        <width>49</width>
        <height>16</height>
       </rect>
@@ -84,8 +105,8 @@ background-color: rgb(178, 100, 168);</string>
     <widget class="QLineEdit" name="EmailInput">
      <property name="geometry">
       <rect>
-       <x>40</x>
-       <y>170</y>
+       <x>60</x>
+       <y>230</y>
        <width>261</width>
        <height>31</height>
       </rect>
@@ -100,8 +121,8 @@ background-color: rgb(178, 100, 168);</string>
     <widget class="QLabel" name="label_4">
      <property name="geometry">
       <rect>
-       <x>40</x>
-       <y>210</y>
+       <x>60</x>
+       <y>270</y>
        <width>51</width>
        <height>16</height>
       </rect>
@@ -113,8 +134,8 @@ background-color: rgb(178, 100, 168);</string>
     <widget class="QLineEdit" name="PasswordInput">
      <property name="geometry">
       <rect>
-       <x>40</x>
-       <y>230</y>
+       <x>60</x>
+       <y>290</y>
        <width>261</width>
        <height>31</height>
       </rect>
@@ -129,8 +150,8 @@ background-color: rgb(178, 100, 168);</string>
     <widget class="QCheckBox" name="checkBox">
      <property name="geometry">
       <rect>
-       <x>40</x>
-       <y>280</y>
+       <x>60</x>
+       <y>340</y>
        <width>101</width>
        <height>20</height>
       </rect>
@@ -142,8 +163,8 @@ background-color: rgb(178, 100, 168);</string>
     <widget class="QPushButton" name="signupButton">
      <property name="geometry">
       <rect>
-       <x>40</x>
-       <y>310</y>
+       <x>60</x>
+       <y>370</y>
        <width>75</width>
        <height>24</height>
       </rect>
@@ -162,8 +183,8 @@ color: rgb(247, 247, 247);</string>
     <widget class="QPushButton" name="signinButton">
      <property name="geometry">
       <rect>
-       <x>220</x>
-       <y>310</y>
+       <x>240</x>
+       <y>370</y>
        <width>81</width>
        <height>24</height>
       </rect>
@@ -182,8 +203,8 @@ color: rgb(247, 247, 247);</string>
     <widget class="QPushButton" name="forgotButton">
      <property name="geometry">
       <rect>
-       <x>210</x>
-       <y>280</y>
+       <x>230</x>
+       <y>340</y>
        <width>91</width>
        <height>24</height>
       </rect>
@@ -198,10 +219,10 @@ color: rgb(247, 247, 247);</string>
     <widget class="QPushButton" name="pushButton">
      <property name="geometry">
       <rect>
-       <x>220</x>
-       <y>230</y>
+       <x>240</x>
+       <y>290</y>
        <width>75</width>
-       <height>24</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">

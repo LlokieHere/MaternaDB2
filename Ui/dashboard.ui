@@ -135,7 +135,7 @@
     <widget class="QLabel" name="label_2">
      <property name="geometry">
       <rect>
-       <x>70</x>
+       <x>110</x>
        <y>20</y>
        <width>91</width>
        <height>21</height>
@@ -153,6 +153,31 @@
      </property>
      <property name="text">
       <string>MATERNADB</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="logo">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>10</y>
+       <width>50</width>
+       <height>50</height>
+      </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>50</width>
+       <height>50</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
      </property>
     </widget>
    </widget>
@@ -204,8 +229,20 @@
        <x>50</x>
        <y>260</y>
        <width>621</width>
-       <height>241</height>
+       <height>191</height>
       </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>621</width>
+       <height>191</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>700</width>
+       <height>200</height>
+      </size>
      </property>
      <property name="autoFillBackground">
       <bool>true</bool>
@@ -222,8 +259,7 @@ QTableWidget::item {
     color: rgb(21, 23, 61);
     padding: 8px;
     border: none;
-	border-radius: 15px;
-    border-bottom: 1px solid rgb(220, 220, 220);
+    border-bottom: 1px solid rgb(210, 177, 200);
 }
 
 QTableWidget::item:selected {
@@ -297,6 +333,11 @@ QScrollBar::handle:vertical {
      <attribute name="verticalHeaderCascadingSectionResizes">
       <bool>false</bool>
      </attribute>
+     <row>
+      <property name="text">
+       <string>New Row</string>
+      </property>
+     </row>
      <column>
       <property name="text">
        <string>NAME</string>
@@ -312,11 +353,6 @@ QScrollBar::handle:vertical {
        <string>REGISTERED</string>
       </property>
      </column>
-     <column>
-      <property name="text">
-       <string>STATUS</string>
-      </property>
-     </column>
     </widget>
     <widget class="QTableView" name="today_appointment">
      <property name="geometry">
@@ -324,8 +360,14 @@ QScrollBar::handle:vertical {
        <x>680</x>
        <y>260</y>
        <width>291</width>
-       <height>241</height>
+       <height>191</height>
       </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>300</width>
+       <height>200</height>
+      </size>
      </property>
      <property name="styleSheet">
       <string notr="true">background-color: rgb(235, 197, 219);
@@ -388,9 +430,21 @@ border: 1px solid rgb(158, 136, 163)</string>
       <rect>
        <x>695</x>
        <y>280</y>
-       <width>261</width>
-       <height>81</height>
+       <width>260</width>
+       <height>78</height>
       </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>260</width>
+       <height>78</height>
+      </size>
      </property>
      <property name="styleSheet">
       <string notr="true">border-radius: 15px;
@@ -458,7 +512,7 @@ font-size: 20px</string>
        <rect>
         <x>89</x>
         <y>10</y>
-        <width>171</width>
+        <width>161</width>
         <height>41</height>
        </rect>
       </property>
@@ -509,7 +563,7 @@ border: none;</string>
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>40</x>
@@ -532,6 +586,12 @@ border: none;</string>
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>99</height>
+         </size>
         </property>
         <property name="maximumSize">
          <size>
@@ -589,6 +649,18 @@ border: none;</string>
       </item>
       <item row="0" column="1">
        <widget class="QFrame" name="upcomingApp">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>99</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>200</width>
@@ -645,6 +717,18 @@ border: none;</string>
       </item>
       <item row="0" column="2">
        <widget class="QFrame" name="prenatalVisit">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>99</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>200</width>
@@ -701,6 +785,18 @@ border: none;</string>
       </item>
       <item row="0" column="3">
        <widget class="QFrame" name="Deliveries">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>99</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>200</width>

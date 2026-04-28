@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QMainWindow, QMessageBox
 from screens.login_ui import Ui_MainWindow
+from database import get_connection
 
 
 class LoginScreen(QMainWindow):
@@ -43,6 +44,30 @@ class LoginScreen(QMainWindow):
         self.signup_window.showMaximized()
         self.signup_window.show()
         self.close()
+
+    def sign_in(self):
+        email = self.ui.EmailInput.text()
+        password = self.ui.PasswordInput.text()
+
+        conn = get_connection()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM users WHERE email = %s AND password = %s",
+                (email, password)
+            )
+            user = cursor.fetchone()
+            conn.close()
+
+            if user:
+                from screens.dashboard_screen import DashboardScreen
+                self.dashboard = DashboardScreen()
+                self.dashboard.showMaximized()
+                self.dashboard.show()
+                self.close()
+            else:
+                from PyQt6.QtWidgets import QMessageBox
+                QMessageBox.warning(self, "Error", "Invalid email or password!")
 
     def forgot_password(self):
         print("Forgot password clicked")

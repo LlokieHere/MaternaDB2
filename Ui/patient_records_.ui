@@ -29,6 +29,12 @@
       <height>611</height>
      </rect>
     </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
     <property name="styleSheet">
      <string notr="true"> background-color: rgb(192, 116, 182)</string>
     </property>
@@ -138,10 +144,10 @@
     <widget class="QLabel" name="label_2">
      <property name="geometry">
       <rect>
-       <x>70</x>
-       <y>20</y>
+       <x>130</x>
+       <y>10</y>
        <width>91</width>
-       <height>21</height>
+       <height>51</height>
       </rect>
      </property>
      <property name="font">
@@ -156,6 +162,47 @@
      </property>
      <property name="text">
       <string>MATERNADB</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>10</y>
+       <width>100</width>
+       <height>45</height>
+      </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>45</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <family>Segoe UI</family>
+       <pointsize>12</pointsize>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: rgb(255, 255, 255);</string>
+     </property>
+     <property name="text">
+      <string>LOGO</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </widget>
@@ -379,6 +426,54 @@ border: 1px solid rgb(177, 152, 177);</string>
      </property>
      <property name="text">
       <string>View</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="add_patient_btn">
+     <property name="geometry">
+      <rect>
+       <x>730</x>
+       <y>100</y>
+       <width>121</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border-radius: 12px;
+background-color: rgb(236, 198, 220);
+border: 1px solid rgb(210, 177, 200);</string>
+     </property>
+     <property name="text">
+      <string>Add Patient</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="remove_patient_btn">
+     <property name="geometry">
+      <rect>
+       <x>860</x>
+       <y>100</y>
+       <width>121</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border-radius: 12px;
+background-color: rgb(236, 198, 220);
+border: 1px solid rgb(210, 177, 200);</string>
+     </property>
+     <property name="text">
+      <string>Remove Patient</string>
      </property>
     </widget>
    </widget>

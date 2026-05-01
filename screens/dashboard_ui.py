@@ -183,7 +183,7 @@ class Ui_DashboardScreen(object):
         self.Todays_appointment_TA.setObjectName("Todays_appointment_TA")
         self.content_container_TA = QtWidgets.QFrame(parent=self.frame_3)
         self.content_container_TA.setGeometry(QtCore.QRect(695, 280, 260, 78))
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Maximum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.content_container_TA.sizePolicy().hasHeightForWidth())

@@ -22,10 +22,27 @@ class DashboardScreen(QMainWindow):
         if not self._initialized:
             self._initialized = True
             self.reposition_elements()
+            self.load_logo()  # ← add this
             self.load_stats()
             self.load_recent_patients()
 
-    def resizeEvent(self, event):
+    def load_logo(self):
+        from PyQt6.QtGui import QPixmap
+        from PyQt6.QtCore import Qt
+        pixmap = QPixmap("Asset/MaternaDB_logo.png")
+        if not pixmap.isNull():
+            scaled = pixmap.scaled(
+                self.ui.logo.width(),
+                self.ui.logo.height(),
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            )
+            self.ui.logo.setPixmap(scaled)
+            self.ui.logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        else:
+            print("Logo not found! Check Asset/MaternaDB_logo.png")
+
+    def resizeEvent(self, event):  # ← this was missing!
         super().resizeEvent(event)
         self.reposition_elements()
 

@@ -1,29 +1,3 @@
-"""
-MaternaDB - Prenatal Care Screen
-==================================
-Logic file for the Prenatal Care screen.
-Follows the same _screen.py pattern as dashboard_screen.py.
-
-Required PostgreSQL table (run once in your DB):
--------------------------------------------------
-CREATE TABLE IF NOT EXISTS prenatal_visit (
-    visit_id     SERIAL PRIMARY KEY,
-    patient_id   INTEGER REFERENCES patient_profile(patient_id),
-    visit_num    INTEGER NOT NULL,
-    visit_date   DATE NOT NULL,
-    aog_weeks    INTEGER NOT NULL,
-    staff        TEXT NOT NULL,
-    bp           TEXT NOT NULL,
-    weight_kg    DECIMAL(5, 2),
-    fht_bpm      INTEGER,
-    fh_cm        DECIMAL(4, 1),
-    presentation TEXT DEFAULT 'Cephalic',
-    risk_assessment TEXT DEFAULT 'Low Risk',
-    edd          DATE
-);
--------------------------------------------------
-"""
-
 from PyQt6.QtWidgets import (
     QMainWindow, QMessageBox, QWidget, QHBoxLayout, QVBoxLayout,
     QLabel, QPushButton, QFrame, QDialog, QFormLayout, QLineEdit,
@@ -35,10 +9,7 @@ from PyQt6.QtGui import QPixmap, QPainter, QColor, QBrush, QPen, QFont
 from screens.prenatal_care_ui import Ui_PrenatalCareScreen
 from database import get_connection
 
-
-# ── Small helper: the colored circle badge (V1, V2, V3) ───────────────────
 class CircleBadge(QLabel):
-    """Draws a filled circle with a visit number label inside."""
     def __init__(self, text, parent=None):
         super().__init__(parent)
         self._text = text
@@ -47,7 +18,7 @@ class CircleBadge(QLabel):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setBrush(QBrush(QColor(178, 100, 168)))   # rgb(178,100,168) — same purple as scrollbar
+        painter.setBrush(QBrush(QColor(178, 100, 168)))
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawEllipse(0, 0, 50, 50)
         painter.setPen(QPen(QColor(255, 255, 255)))
@@ -57,12 +28,7 @@ class CircleBadge(QLabel):
         painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, self._text)
 
 
-# ── Diagnosis Dialog ────────────────────────────────────────────────────────
 class DiagnosisDialog(QDialog):
-    """
-    Pop-up shown when 'View Diagnosis' is clicked.
-    Displays: AOG, BP, Weight, FHT, FH, Presentation, Staff, Risk Assessment.
-    """
     RISK_STYLES = {
         "Low Risk":      "background-color: rgb(220,240,220); color: rgb(30,100,30);",
         "Moderate Risk": "background-color: rgb(255,243,205); color: rgb(130,80,0);",
@@ -82,7 +48,7 @@ class DiagnosisDialog(QDialog):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # Header strip (dark navy, same as navbar)
+        # Header strip
         header = QWidget()
         header.setStyleSheet("background-color: rgb(21, 23, 61);")
         header.setFixedHeight(72)
@@ -192,8 +158,7 @@ class DiagnosisDialog(QDialog):
         except Exception:
             return str(d)
 
-
-# ── New Visit Dialog ─────────────────────────────────────────────────────────
+# ── New Visit Dialog
 class NewVisitDialog(QDialog):
     PRESENTATIONS = ["Cephalic", "Breech", "Transverse", "Oblique"]
     RISKS = ["Low Risk", "Moderate Risk", "High Risk"]
@@ -384,7 +349,7 @@ class NewVisitDialog(QDialog):
         self.accept()
 
 
-# ── Visit Card Widget ────────────────────────────────────────────────────────
+# ── Visit Card Widget
 class VisitCard(QWidget):
     """
     One row in the prenatal visits list.
@@ -504,7 +469,7 @@ class VisitCard(QWidget):
             return str(d)
 
 
-# ── Main Screen ─────────────────────────────────────────────────────────────
+# ── Main Screen
 class PrenatalCareScreen(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -514,7 +479,7 @@ class PrenatalCareScreen(QMainWindow):
         self._initialized = False
         self._current_patient_id = None
 
-        # Sidebar navigation — same as dashboard_screen.py
+        # Sidebar navigation
         self.ui.pushButton.clicked.connect(self.go_to_dashboard)
         self.ui.pushButton_2.clicked.connect(self.go_to_patient_records)
         self.ui.pushButton_3.clicked.connect(self.go_to_prenatal_care)
@@ -587,9 +552,8 @@ class PrenatalCareScreen(QMainWindow):
             self.ui.logo.setPixmap(scaled)
             self.ui.logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-    # ── Patient loading ──────────────────────────────────────────────────────
+    # ── Patient loading
     def load_patients(self):
-        """Populate the patient combo box from the database."""
         conn = get_connection()
         if not conn:
             return
@@ -634,7 +598,6 @@ class PrenatalCareScreen(QMainWindow):
         self.load_prenatal_visits(patient_id)
 
     def load_patient_info(self, patient_id):
-        """Load and display the selected patient's header info."""
         conn = get_connection()
         if not conn:
             return
@@ -676,9 +639,8 @@ class PrenatalCareScreen(QMainWindow):
             if conn:
                 conn.close()
 
-    # ── Visit cards ──────────────────────────────────────────────────────────
+    # ── Visit cards
     def load_prenatal_visits(self, patient_id):
-        """Fetch prenatal visits from DB and render as cards in the scroll area."""
         conn = get_connection()
         if not conn:
             return
@@ -755,7 +717,6 @@ class PrenatalCareScreen(QMainWindow):
             layout.insertWidget(layout.count() - 1, card)
 
     def _clear_visit_cards(self):
-        """Remove all dynamically-added visit cards from the scroll area."""
         layout = self.ui.scroll_layout
         # Remove everything except the final stretch item
         while layout.count() > 1:
@@ -767,7 +728,7 @@ class PrenatalCareScreen(QMainWindow):
         dlg = DiagnosisDialog(visit, parent=self)
         dlg.exec()
 
-    # ── Record new visit ─────────────────────────────────────────────────────
+    # ── Record new visit
     def on_record_new_visit(self):
         if self._current_patient_id is None:
             QMessageBox.warning(self, "No Patient Selected",
@@ -824,7 +785,7 @@ class PrenatalCareScreen(QMainWindow):
             if conn:
                 conn.close()
 
-    # ── Sidebar navigation (same as dashboard_screen.py) ────────────────────
+    # ── Sidebar navigation
     def go_to_dashboard(self):
         from screens.dashboard_screen import DashboardScreen
         self.dashboard = DashboardScreen()
@@ -846,7 +807,7 @@ class PrenatalCareScreen(QMainWindow):
         self.login_window.showMaximized()
         self.close()
 
-    # ── Utility ─────────────────────────────────────────────────────────────
+    # ── Utility
     def _fmt_date(self, d):
         try:
             if hasattr(d, 'strftime'):

@@ -1,6 +1,3 @@
-# Form implementation for Prenatal Care screen
-# Matches the MaternaDB UI pattern (PyQt6, same colors/fonts as dashboard_ui.py)
-
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
@@ -13,7 +10,7 @@ class Ui_PrenatalCareScreen(object):
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
-        # ── Sidebar (purple-pink, left) ────────────────────────────────────
+        # ── Sidebar
         self.frame = QtWidgets.QFrame(parent=self.centralwidget)
         self.frame.setGeometry(QtCore.QRect(0, 60, 231, 581))
         self.frame.setStyleSheet("background-color: rgb(192, 116, 182)")
@@ -45,7 +42,7 @@ class Ui_PrenatalCareScreen(object):
         self.pushButton_5.setGeometry(QtCore.QRect(20, 500, 191, 41))
         self.pushButton_5.setObjectName("pushButton_5")
 
-        # ── Top Navbar (dark navy) ─────────────────────────────────────────
+        # ── Top Navbar
         self.frame_2 = QtWidgets.QFrame(parent=self.centralwidget)
         self.frame_2.setGeometry(QtCore.QRect(0, 0, 1231, 61))
         self.frame_2.setStyleSheet("background-color: rgb(26, 26, 62)")
@@ -72,7 +69,7 @@ class Ui_PrenatalCareScreen(object):
         self.label_2.setStyleSheet("color: rgb(255, 255, 255);")
         self.label_2.setObjectName("label_2")
 
-        # ── Main Content Frame (light lavender) ────────────────────────────
+        # ── Main Content Frame
         self.frame_3 = QtWidgets.QFrame(parent=self.centralwidget)
         self.frame_3.setGeometry(QtCore.QRect(230, 60, 1001, 601))
         font2 = QtGui.QFont()
@@ -178,7 +175,7 @@ class Ui_PrenatalCareScreen(object):
         """)
         self.btn_record_visit.setObjectName("btn_record_visit")
 
-        # ── Tab buttons ────────────────────────────────────────────────────
+        # ── Tab buttons
         self.tab_frame = QtWidgets.QFrame(parent=self.frame_3)
         self.tab_frame.setGeometry(QtCore.QRect(40, 200, 921, 40))
         self.tab_frame.setStyleSheet("background: transparent;")
@@ -234,7 +231,7 @@ class Ui_PrenatalCareScreen(object):
         self.tab_line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         self.tab_line.setObjectName("tab_line")
 
-        # ── Scroll area for visit cards ────────────────────────────────────
+        # ── Scroll area for visit cards
         self.scroll_area = QtWidgets.QScrollArea(parent=self.frame_3)
         self.scroll_area.setGeometry(QtCore.QRect(40, 245, 921, 320))
         self.scroll_area.setStyleSheet("""

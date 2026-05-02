@@ -9,7 +9,7 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Dashboard(object):
+class Ui_DashboardScreen(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1224, 674)
@@ -49,7 +49,7 @@ class Ui_Dashboard(object):
         self.frame_2.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.frame_2.setObjectName("frame_2")
         self.label_2 = QtWidgets.QLabel(parent=self.frame_2)
-        self.label_2.setGeometry(QtCore.QRect(70, 20, 91, 21))
+        self.label_2.setGeometry(QtCore.QRect(110, 20, 91, 21))
         font = QtGui.QFont()
         font.setFamily("Segoe UI")
         font.setPointSize(12)
@@ -57,6 +57,15 @@ class Ui_Dashboard(object):
         self.label_2.setFont(font)
         self.label_2.setStyleSheet("color: rgb(255, 255, 255);")
         self.label_2.setObjectName("label_2")
+        self.logo = QtWidgets.QLabel(parent=self.frame_2)
+        self.logo.setGeometry(QtCore.QRect(40, 10, 50, 50))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.logo.sizePolicy().hasHeightForWidth())
+        self.logo.setSizePolicy(sizePolicy)
+        self.logo.setMinimumSize(QtCore.QSize(50, 50))
+        self.logo.setObjectName("logo")
         self.frame_3 = QtWidgets.QFrame(parent=self.centralwidget)
         self.frame_3.setGeometry(QtCore.QRect(230, 60, 1001, 601))
         font = QtGui.QFont()
@@ -74,7 +83,9 @@ class Ui_Dashboard(object):
         self.label.setFont(font)
         self.label.setObjectName("label")
         self.patient_table = QtWidgets.QTableWidget(parent=self.frame_3)
-        self.patient_table.setGeometry(QtCore.QRect(50, 260, 621, 241))
+        self.patient_table.setGeometry(QtCore.QRect(50, 260, 621, 191))
+        self.patient_table.setMinimumSize(QtCore.QSize(621, 191))
+        self.patient_table.setMaximumSize(QtCore.QSize(700, 200))
         self.patient_table.setAutoFillBackground(True)
         self.patient_table.setStyleSheet("QTableWidget {\n"
 "    background-color:rgb(236, 198, 220);\n"
@@ -87,8 +98,7 @@ class Ui_Dashboard(object):
 "    color: rgb(21, 23, 61);\n"
 "    padding: 8px;\n"
 "    border: none;\n"
-"    border-radius: 15px;\n"
-"    border-bottom: 1px solid rgb(220, 220, 220);\n"
+"    border-bottom: 1px solid rgb(210, 177, 200);\n"
 "}\n"
 "\n"
 "QTableWidget::item:selected {\n"
@@ -124,16 +134,16 @@ class Ui_Dashboard(object):
         self.patient_table.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.patient_table.setShowGrid(False)
         self.patient_table.setObjectName("patient_table")
-        self.patient_table.setColumnCount(4)
-        self.patient_table.setRowCount(0)
+        self.patient_table.setColumnCount(3)
+        self.patient_table.setRowCount(1)
+        item = QtWidgets.QTableWidgetItem()
+        self.patient_table.setVerticalHeaderItem(0, item)
         item = QtWidgets.QTableWidgetItem()
         self.patient_table.setHorizontalHeaderItem(0, item)
         item = QtWidgets.QTableWidgetItem()
         self.patient_table.setHorizontalHeaderItem(1, item)
         item = QtWidgets.QTableWidgetItem()
         self.patient_table.setHorizontalHeaderItem(2, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.patient_table.setHorizontalHeaderItem(3, item)
         self.patient_table.horizontalHeader().setCascadingSectionResizes(False)
         self.patient_table.horizontalHeader().setDefaultSectionSize(170)
         self.patient_table.horizontalHeader().setHighlightSections(True)
@@ -143,7 +153,8 @@ class Ui_Dashboard(object):
         self.patient_table.verticalHeader().setVisible(False)
         self.patient_table.verticalHeader().setCascadingSectionResizes(False)
         self.today_appointment = QtWidgets.QTableView(parent=self.frame_3)
-        self.today_appointment.setGeometry(QtCore.QRect(680, 260, 291, 241))
+        self.today_appointment.setGeometry(QtCore.QRect(680, 260, 291, 191))
+        self.today_appointment.setMaximumSize(QtCore.QSize(300, 200))
         self.today_appointment.setStyleSheet("background-color: rgb(235, 197, 219);\n"
 "border-radius: 15px;\n"
 "border: 1px solid rgb(158, 136, 163)")
@@ -171,7 +182,13 @@ class Ui_Dashboard(object):
 "}")
         self.Todays_appointment_TA.setObjectName("Todays_appointment_TA")
         self.content_container_TA = QtWidgets.QFrame(parent=self.frame_3)
-        self.content_container_TA.setGeometry(QtCore.QRect(695, 280, 261, 81))
+        self.content_container_TA.setGeometry(QtCore.QRect(695, 280, 260, 78))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Maximum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.content_container_TA.sizePolicy().hasHeightForWidth())
+        self.content_container_TA.setSizePolicy(sizePolicy)
+        self.content_container_TA.setMinimumSize(QtCore.QSize(260, 78))
         self.content_container_TA.setStyleSheet("border-radius: 15px;\n"
 "border: 1px solid rgb(162, 139, 166);\n"
 "background-color: rgb(236, 198, 220);")
@@ -194,7 +211,7 @@ class Ui_Dashboard(object):
 "font-size: 20px")
         self.day_2.setObjectName("day_2")
         self.patient_name_TA = QtWidgets.QLabel(parent=self.content_container_TA)
-        self.patient_name_TA.setGeometry(QtCore.QRect(89, 10, 171, 41))
+        self.patient_name_TA.setGeometry(QtCore.QRect(89, 10, 161, 41))
         self.patient_name_TA.setStyleSheet("color: #15173D;\n"
 "font-size: 14px;\n"
 "font-weight: bold;\n"
@@ -212,19 +229,20 @@ class Ui_Dashboard(object):
 "font-size: 12px;\n"
 "border: none;")
         self.purpose_TA.setObjectName("purpose_TA")
-        self.widget = QtWidgets.QWidget(parent=self.frame_3)
-        self.widget.setGeometry(QtCore.QRect(40, 100, 941, 101))
-        self.widget.setObjectName("widget")
-        self.gridLayout = QtWidgets.QGridLayout(self.widget)
+        self.layoutWidget = QtWidgets.QWidget(parent=self.frame_3)
+        self.layoutWidget.setGeometry(QtCore.QRect(40, 100, 941, 101))
+        self.layoutWidget.setObjectName("layoutWidget")
+        self.gridLayout = QtWidgets.QGridLayout(self.layoutWidget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setHorizontalSpacing(20)
         self.gridLayout.setObjectName("gridLayout")
-        self.total_patient = QtWidgets.QFrame(parent=self.widget)
+        self.total_patient = QtWidgets.QFrame(parent=self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.total_patient.sizePolicy().hasHeightForWidth())
         self.total_patient.setSizePolicy(sizePolicy)
+        self.total_patient.setMinimumSize(QtCore.QSize(200, 99))
         self.total_patient.setMaximumSize(QtCore.QSize(200, 130))
         self.total_patient.setStyleSheet("background-color: rgb(21, 23, 61); border-radius: 15px;")
         self.total_patient.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
@@ -244,7 +262,13 @@ class Ui_Dashboard(object):
 "border: none;")
         self.total_patient_label_2.setObjectName("total_patient_label_2")
         self.gridLayout.addWidget(self.total_patient, 0, 0, 1, 1)
-        self.upcomingApp = QtWidgets.QFrame(parent=self.widget)
+        self.upcomingApp = QtWidgets.QFrame(parent=self.layoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.upcomingApp.sizePolicy().hasHeightForWidth())
+        self.upcomingApp.setSizePolicy(sizePolicy)
+        self.upcomingApp.setMinimumSize(QtCore.QSize(200, 99))
         self.upcomingApp.setMaximumSize(QtCore.QSize(200, 130))
         self.upcomingApp.setStyleSheet("background-color: rgb(236, 198, 220); border-radius: 15px;\n"
 "border: 1px solid rgb(150, 128, 156);")
@@ -264,7 +288,13 @@ class Ui_Dashboard(object):
 "border: none;")
         self.total_patient_label_3.setObjectName("total_patient_label_3")
         self.gridLayout.addWidget(self.upcomingApp, 0, 1, 1, 1)
-        self.prenatalVisit = QtWidgets.QFrame(parent=self.widget)
+        self.prenatalVisit = QtWidgets.QFrame(parent=self.layoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.prenatalVisit.sizePolicy().hasHeightForWidth())
+        self.prenatalVisit.setSizePolicy(sizePolicy)
+        self.prenatalVisit.setMinimumSize(QtCore.QSize(200, 99))
         self.prenatalVisit.setMaximumSize(QtCore.QSize(200, 130))
         self.prenatalVisit.setStyleSheet("background-color: rgb(236, 198, 220); border-radius: 15px;\n"
 "border: 1px solid rgb(150, 128, 156);")
@@ -284,7 +314,13 @@ class Ui_Dashboard(object):
 "border: none;")
         self.total_patient_label_4.setObjectName("total_patient_label_4")
         self.gridLayout.addWidget(self.prenatalVisit, 0, 2, 1, 1)
-        self.Deliveries = QtWidgets.QFrame(parent=self.widget)
+        self.Deliveries = QtWidgets.QFrame(parent=self.layoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.Deliveries.sizePolicy().hasHeightForWidth())
+        self.Deliveries.setSizePolicy(sizePolicy)
+        self.Deliveries.setMinimumSize(QtCore.QSize(200, 99))
         self.Deliveries.setMaximumSize(QtCore.QSize(200, 130))
         self.Deliveries.setStyleSheet("background-color: rgb(236, 198, 220); border-radius: 15px;\n"
 "border: 1px solid rgb(150, 128, 156);")
@@ -334,15 +370,16 @@ class Ui_Dashboard(object):
         self.pushButton_4.setText(_translate("MainWindow", "Appointments        "))
         self.pushButton_5.setText(_translate("MainWindow", "Log out"))
         self.label_2.setText(_translate("MainWindow", "MATERNADB"))
+        self.logo.setText(_translate("MainWindow", "TextLabel"))
         self.label.setText(_translate("MainWindow", "DASHBOARD"))
+        item = self.patient_table.verticalHeaderItem(0)
+        item.setText(_translate("MainWindow", "New Row"))
         item = self.patient_table.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "NAME"))
         item = self.patient_table.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "TYPE"))
         item = self.patient_table.horizontalHeaderItem(2)
         item.setText(_translate("MainWindow", "REGISTERED"))
-        item = self.patient_table.horizontalHeaderItem(3)
-        item.setText(_translate("MainWindow", "STATUS"))
         self.label_3.setText(_translate("MainWindow", "Recent Patients"))
         self.Todays_appointment_TA.setText(_translate("MainWindow", "Today\'s Appointments"))
         self.day.setText(_translate("MainWindow", "5"))

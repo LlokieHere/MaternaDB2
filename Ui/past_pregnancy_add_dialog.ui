@@ -363,7 +363,7 @@ background-color: rgb(240, 230, 240);
 border: 1px solid rgb(26, 26, 62);</string>
     </property>
     <property name="text">
-     <string>e.g., Cephalicr</string>
+     <string>e.g., Cephalic</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>

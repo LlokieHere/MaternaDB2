@@ -156,7 +156,10 @@ class DashboardScreen(QMainWindow):
         print("Go to Patient Records")
 
     def go_to_prenatal_care(self):
-        print("Go to Prenatal Care")
+        from screens.prenatal_care_screen import PrenatalCareScreen
+        self.prenatal_window = PrenatalCareScreen()
+        self.prenatal_window.showMaximized()
+        self.close()
 
     def go_to_appointments(self):
         print("Go to Appointments")

@@ -9,7 +9,10 @@ from PyQt6.QtGui import QPixmap, QPainter, QColor, QBrush, QPen, QFont
 from screens.prenatal_care_ui import Ui_PrenatalCareScreen
 from database import get_connection
 
+
+# ── Small helper: the colored circle badge chuchu (V1, V2, V3) ───────────────────
 class CircleBadge(QLabel):
+    """Draws a filled circle with a visit number label inside."""
     def __init__(self, text, parent=None):
         super().__init__(parent)
         self._text = text
@@ -18,7 +21,7 @@ class CircleBadge(QLabel):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setBrush(QBrush(QColor(178, 100, 168)))
+        painter.setBrush(QBrush(QColor(178, 100, 168)))   # rgb(178,100,168) — same purple as scrollbar
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawEllipse(0, 0, 50, 50)
         painter.setPen(QPen(QColor(255, 255, 255)))
@@ -28,7 +31,12 @@ class CircleBadge(QLabel):
         painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, self._text)
 
 
+# ── Diagnosis Dialog ────────────────────────────────────────────────────────
 class DiagnosisDialog(QDialog):
+    """
+    Pop-up shown when 'View Diagnosis' is clicked.
+    Displays: AOG, BP, Weight, FHT, FH, Presentation, Staff, Risk Assessment.
+    """
     RISK_STYLES = {
         "Low Risk":      "background-color: rgb(220,240,220); color: rgb(30,100,30);",
         "Moderate Risk": "background-color: rgb(255,243,205); color: rgb(130,80,0);",
@@ -48,7 +56,7 @@ class DiagnosisDialog(QDialog):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # Header strip
+        # Header strip (dark navy, same as navbar)
         header = QWidget()
         header.setStyleSheet("background-color: rgb(21, 23, 61);")
         header.setFixedHeight(72)
@@ -158,14 +166,15 @@ class DiagnosisDialog(QDialog):
         except Exception:
             return str(d)
 
-# ── New Visit Dialog
+
+# ── New Visit Dialog ─────────────────────────────────────────────────────────
 class NewVisitDialog(QDialog):
     PRESENTATIONS = ["Cephalic", "Breech", "Transverse", "Oblique"]
     RISKS = ["Low Risk", "Moderate Risk", "High Risk"]
 
-    def __init__(self, patient_id, next_visit_num, parent=None):
+    def __init__(self, pregnancy_id, next_visit_num, parent=None):
         super().__init__(parent)
-        self.patient_id = patient_id
+        self.pregnancy_id    = pregnancy_id
         self.next_visit_num = next_visit_num
         self.setWindowTitle(f"Record Visit #{next_visit_num}")
         self.setMinimumWidth(400)
@@ -333,23 +342,22 @@ class NewVisitDialog(QDialog):
             return
 
         self.result_data = {
-            "patient_id":       self.patient_id,
-            "visit_num":        self.next_visit_num,
-            "visit_date":       self.f_date.date().toString("yyyy-MM-dd"),
-            "aog_weeks":        aog_val,
-            "staff":            staff_text,
-            "bp":               bp_text,
-            "weight_kg":        weight_val,
-            "fht_bpm":          fht_val,
-            "fh_cm":            fh_val,
-            "presentation":     self.f_presentation.currentText(),
-            "risk_assessment":  self.f_risk.currentText(),
-            "edd":              self.f_edd.date().toString("yyyy-MM-dd"),
+            "pregnancy_id":    self.pregnancy_id,
+            "visit_num":       self.next_visit_num,
+            "visit_date":      self.f_date.date().toString("yyyy-MM-dd"),
+            "aog_weeks":       aog_val,
+            "staff":           staff_text,
+            "bp":              bp_text,
+            "weight_kg":       weight_val,
+            "fht_bpm":         fht_val,
+            "fh_cm":           fh_val,
+            "presentation":    self.f_presentation.currentText(),
+            "risk_assessment": self.f_risk.currentText(),
         }
         self.accept()
 
 
-# ── Visit Card Widget
+# ── Visit Card Widget ────────────────────────────────────────────────────────
 class VisitCard(QWidget):
     """
     One row in the prenatal visits list.
@@ -469,15 +477,27 @@ class VisitCard(QWidget):
             return str(d)
 
 
-# ── Main Screen
+# ── Main Screen ─────────────────────────────────────────────────────────────
 class PrenatalCareScreen(QMainWindow):
-    def __init__(self):
+    def __init__(self, pregnancy_id: int, pregnancy_num: int, patient_id: int):
+        """
+        Now opened FROM PrenatalDashboardScreen with a specific pregnancy.
+        pregnancy_id  — which pregnancy row to show visits for
+        pregnancy_num — used in the title (e.g. "2nd Pregnancy – Prenatal Care")
+        patient_id    — used to go back to the dashboard for this patient
+        """
         super().__init__()
         self.ui = Ui_PrenatalCareScreen()
         self.ui.setupUi(self)
-        self.setWindowTitle("MaternaDB - Prenatal Care")
-        self._initialized = False
-        self._current_patient_id = None
+        self._pregnancy_id  = pregnancy_id
+        self._pregnancy_num = pregnancy_num
+        self._patient_id    = patient_id
+        self._initialized   = False
+
+        ordinal = {1:"1st",2:"2nd",3:"3rd"}.get(pregnancy_num, f"{pregnancy_num}th")
+        self.setWindowTitle(
+            f"MaternaDB - Prenatal Care ({ordinal} Pregnancy)"
+        )
 
         # Sidebar navigation
         self.ui.pushButton.clicked.connect(self.go_to_dashboard)
@@ -487,7 +507,6 @@ class PrenatalCareScreen(QMainWindow):
         self.ui.pushButton_5.clicked.connect(self.logout)
 
         # Prenatal-specific actions
-        self.ui.patient_combo.currentIndexChanged.connect(self.on_patient_selected)
         self.ui.btn_record_visit.clicked.connect(self.on_record_new_visit)
 
     def showEvent(self, event):
@@ -496,7 +515,18 @@ class PrenatalCareScreen(QMainWindow):
             self._initialized = True
             self.reposition_elements()
             self.load_logo()
-            self.load_patients()
+            # Hide patient selector — already chosen via Prenatal Dashboard
+            self.ui.patient_combo.hide()
+            self.ui.patient_selector_label.hide()
+            # Show which pregnancy this is in the title
+            ordinal = {1: "1st", 2: "2nd", 3: "3rd"}.get(
+                self._pregnancy_num, f"{self._pregnancy_num}th"
+            )
+            self.ui.title_label.setText(
+                f"PRENATAL CARE  –  {ordinal.upper()} PREGNANCY"
+            )
+            self.load_patient_info_by_pregnancy()
+            self.load_prenatal_visits()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -552,153 +582,83 @@ class PrenatalCareScreen(QMainWindow):
             self.ui.logo.setPixmap(scaled)
             self.ui.logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-    # ── Patient loading
-    def load_patients(self):
+    # ── Patient / pregnancy info ──────────────────────────────────────────────
+    def load_patient_info_by_pregnancy(self):
+        """Load patient name and EDD from the pregnancy record."""
         conn = get_connection()
         if not conn:
             return
         try:
             cursor = conn.cursor()
-            cursor.execute("""
-                SELECT patient_id,
-                       CONCAT(last_name, ', ', first_name,
-                              CASE WHEN middle_name IS NOT NULL AND middle_name <> ''
-                                   THEN ' ' || middle_name ELSE '' END)
-                FROM patient_profile
-                WHERE patient_type = 'Maternal'
-                ORDER BY last_name, first_name
-            """)
-            patients = cursor.fetchall()
-            conn.close()
-
-            self.ui.patient_combo.blockSignals(True)
-            self.ui.patient_combo.clear()
-            self.ui.patient_combo.addItem("— Select a patient —", userData=None)
-            for pid, name in patients:
-                self.ui.patient_combo.addItem(name, userData=pid)
-            self.ui.patient_combo.blockSignals(False)
-
-        except Exception as e:
-            print(f"Error loading patients: {e}")
-            if conn:
-                conn.close()
-
-    def on_patient_selected(self, index):
-        patient_id = self.ui.patient_combo.currentData()
-        if patient_id is None:
-            self._current_patient_id = None
-            self.ui.patient_name_label.setText("—")
-            self.ui.patient_sub_label.setText(
-                "Select a patient above to view their prenatal visits."
-            )
-            self._clear_visit_cards()
-            return
-        self._current_patient_id = patient_id
-        self.load_patient_info(patient_id)
-        self.load_prenatal_visits(patient_id)
-
-    def load_patient_info(self, patient_id):
-        conn = get_connection()
-        if not conn:
-            return
-        try:
-            cursor = conn.cursor()
+            # Patient info
             cursor.execute("""
                 SELECT patient_id,
                        CONCAT(last_name, ', ', first_name,
                               CASE WHEN middle_name IS NOT NULL AND middle_name <> ''
                                    THEN ' ' || middle_name ELSE '' END),
-                       age, patient_type
+                       age
                 FROM patient_profile
                 WHERE patient_id = %s
-            """, (patient_id,))
-            row = cursor.fetchone()
+            """, (self._patient_id,))
+            patient_row = cursor.fetchone()
 
-            # Get latest EDD from prenatal_visit
+            # EDD from the pregnancy table
             cursor.execute("""
-                SELECT edd FROM prenatal_visit
-                WHERE patient_id = %s
-                ORDER BY visit_num DESC LIMIT 1
-            """, (patient_id,))
+                SELECT edd FROM pregnancy WHERE pregnancy_id = %s
+            """, (self._pregnancy_id,))
             edd_row = cursor.fetchone()
             conn.close()
 
-            if row:
-                pid, name, age, ptype = row
+            if patient_row:
+                pid, name, age = patient_row
                 edd_text = ""
                 if edd_row and edd_row[0]:
                     edd_text = f"  •  EDD: {self._fmt_date(edd_row[0])}"
+                ordinal = {1:"1st",2:"2nd",3:"3rd"}.get(
+                    self._pregnancy_num, f"{self._pregnancy_num}th"
+                )
                 self.ui.patient_name_label.setText(name)
                 self.ui.patient_sub_label.setText(
                     f"Patient ID: #{pid}  •  Age: {age or '—'}  "
-                    f"•  Type: {ptype or '—'}{edd_text}"
+                    f"•  {ordinal} Pregnancy{edd_text}"
                 )
-
         except Exception as e:
             print(f"Error loading patient info: {e}")
             if conn:
                 conn.close()
 
-    # ── Visit cards
-    def load_prenatal_visits(self, patient_id):
+    # ── Visit cards ──────────────────────────────────────────────────────────
+    def load_prenatal_visits(self):
+        """Fetch visits for this specific pregnancy and render as cards."""
         conn = get_connection()
         if not conn:
             return
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT visit_id, patient_id, visit_num, visit_date, aog_weeks,
+                SELECT visit_id, pregnancy_id, visit_num, visit_date, aog_weeks,
                        staff, bp, weight_kg, fht_bpm, fh_cm,
-                       presentation, risk_assessment, edd
+                       presentation, risk_assessment
                 FROM prenatal_visit
-                WHERE patient_id = %s
+                WHERE pregnancy_id = %s
                 ORDER BY visit_num DESC
-            """, (patient_id,))
+            """, (self._pregnancy_id,))
             rows = cursor.fetchall()
-
-            # Also get EDD from latest visit for the top card
-            edd = None
-            if rows:
-                # edd is the 13th column (index 12)
-                edd = rows[0][12]
-
             conn.close()
         except Exception as e:
             print(f"Error loading prenatal visits: {e}")
             if conn:
                 conn.close()
             rows = []
-            edd = None
 
         self._clear_visit_cards()
-
         layout = self.ui.scroll_layout
 
-        # EDD banner card
-        if edd:
-            edd_card = QFrame()
-            edd_card.setStyleSheet("""
-                QFrame {
-                    background-color: rgb(236, 198, 220);
-                    border-radius: 10px;
-                    border: 1px solid rgb(210, 177, 200);
-                }
-            """)
-            edd_card.setFixedHeight(46)
-            edd_lay = QHBoxLayout(edd_card)
-            edd_lay.setContentsMargins(16, 0, 16, 0)
-            edd_lbl = QLabel(f"<b>EDD:</b>  {self._fmt_date(edd)}")
-            edd_lbl.setTextFormat(Qt.TextFormat.RichText)
-            edd_lbl.setStyleSheet(
-                "color: rgb(21,23,61); font-size: 12px; border: none;"
-            )
-            edd_lay.addWidget(edd_lbl)
-            edd_lay.addStretch()
-            # Insert before the stretch at end
-            layout.insertWidget(layout.count() - 1, edd_card)
-
         if not rows:
-            empty_lbl = QLabel("No prenatal visits recorded yet for this patient.")
+            empty_lbl = QLabel(
+                "No prenatal visits recorded yet for this pregnancy.\n"
+                "Click '+ Record New Visit' to add the first one."
+            )
             empty_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             empty_lbl.setStyleSheet(
                 "color: rgb(100,80,110); font-size: 13px; padding: 30px;"
@@ -707,9 +667,9 @@ class PrenatalCareScreen(QMainWindow):
             return
 
         columns = [
-            "visit_id", "patient_id", "visit_num", "visit_date", "aog_weeks",
+            "visit_id", "pregnancy_id", "visit_num", "visit_date", "aog_weeks",
             "staff", "bp", "weight_kg", "fht_bpm", "fh_cm",
-            "presentation", "risk_assessment", "edd"
+            "presentation", "risk_assessment"
         ]
         for row in rows:
             visit = dict(zip(columns, row))
@@ -718,7 +678,6 @@ class PrenatalCareScreen(QMainWindow):
 
     def _clear_visit_cards(self):
         layout = self.ui.scroll_layout
-        # Remove everything except the final stretch item
         while layout.count() > 1:
             item = layout.takeAt(0)
             if item.widget():
@@ -728,14 +687,8 @@ class PrenatalCareScreen(QMainWindow):
         dlg = DiagnosisDialog(visit, parent=self)
         dlg.exec()
 
-    # ── Record new visit
+    # ── Record new visit ─────────────────────────────────────────────────────
     def on_record_new_visit(self):
-        if self._current_patient_id is None:
-            QMessageBox.warning(self, "No Patient Selected",
-                                "Please select a patient first.")
-            return
-
-        # Determine next visit number
         conn = get_connection()
         next_num = 1
         if conn:
@@ -744,8 +697,8 @@ class PrenatalCareScreen(QMainWindow):
                 cursor.execute("""
                     SELECT COALESCE(MAX(visit_num), 0) + 1
                     FROM prenatal_visit
-                    WHERE patient_id = %s
-                """, (self._current_patient_id,))
+                    WHERE pregnancy_id = %s
+                """, (self._pregnancy_id,))
                 result = cursor.fetchone()
                 next_num = result[0] if result else 1
                 conn.close()
@@ -754,7 +707,7 @@ class PrenatalCareScreen(QMainWindow):
                 if conn:
                     conn.close()
 
-        dlg = NewVisitDialog(self._current_patient_id, next_num, parent=self)
+        dlg = NewVisitDialog(self._pregnancy_id, next_num, parent=self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
             self._save_visit(dlg.result_data)
 
@@ -767,25 +720,22 @@ class PrenatalCareScreen(QMainWindow):
             cursor = conn.cursor()
             cursor.execute("""
                 INSERT INTO prenatal_visit
-                    (patient_id, visit_num, visit_date, aog_weeks, staff,
-                     bp, weight_kg, fht_bpm, fh_cm, presentation,
-                     risk_assessment, edd)
+                    (pregnancy_id, visit_num, visit_date, aog_weeks, staff,
+                     bp, weight_kg, fht_bpm, fh_cm, presentation, risk_assessment)
                 VALUES
-                    (%(patient_id)s, %(visit_num)s, %(visit_date)s, %(aog_weeks)s,
+                    (%(pregnancy_id)s, %(visit_num)s, %(visit_date)s, %(aog_weeks)s,
                      %(staff)s, %(bp)s, %(weight_kg)s, %(fht_bpm)s, %(fh_cm)s,
-                     %(presentation)s, %(risk_assessment)s, %(edd)s)
+                     %(presentation)s, %(risk_assessment)s)
             """, data)
             conn.commit()
             conn.close()
-            # Refresh the cards
-            self.load_patient_info(self._current_patient_id)
-            self.load_prenatal_visits(self._current_patient_id)
+            self.load_prenatal_visits()
         except Exception as e:
             QMessageBox.critical(self, "Save Error", f"Could not save visit:\n{e}")
             if conn:
                 conn.close()
 
-    # ── Sidebar navigation
+    # ── Sidebar navigation ───────────────────────────────────────────────────
     def go_to_dashboard(self):
         from screens.dashboard_screen import DashboardScreen
         self.dashboard = DashboardScreen()
@@ -796,7 +746,11 @@ class PrenatalCareScreen(QMainWindow):
         print("Go to Patient Records")
 
     def go_to_prenatal_care(self):
-        pass   # Already here
+        # Go back to the Prenatal Dashboard (pregnancy list)
+        from screens.prenatal_dashboard_screen import PrenatalDashboardScreen
+        self.prenatal_dashboard = PrenatalDashboardScreen()
+        self.prenatal_dashboard.showMaximized()
+        self.close()
 
     def go_to_appointments(self):
         print("Go to Appointments")
@@ -807,7 +761,7 @@ class PrenatalCareScreen(QMainWindow):
         self.login_window.showMaximized()
         self.close()
 
-    # ── Utility
+    # ── Utility ─────────────────────────────────────────────────────────────
     def _fmt_date(self, d):
         try:
             if hasattr(d, 'strftime'):

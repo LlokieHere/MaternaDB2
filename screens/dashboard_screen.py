@@ -160,8 +160,8 @@ class DashboardScreen(QMainWindow):
         self.close()
 
     def go_to_prenatal_care(self):
-        from screens.prenatal_care_screen import PrenatalCareScreen
-        self.prenatal_window = PrenatalCareScreen()
+        from screens.prenatal_dashboard_screen import PrenatalDashboardScreen
+        self.prenatal_window = PrenatalDashboardScreen()
         self.prenatal_window.showMaximized()
         self.close()
 

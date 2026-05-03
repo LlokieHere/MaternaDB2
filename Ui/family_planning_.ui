@@ -247,7 +247,7 @@ border-radius: 12px;</string>
       <rect>
        <x>40</x>
        <y>20</y>
-       <width>301</width>
+       <width>361</width>
        <height>61</height>
       </rect>
      </property>
@@ -355,14 +355,14 @@ border-radius: 15px;</string>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="0">
-        <widget class="QLabel" name="patient_id_label">
+       <item row="1" column="3" colspan="3">
+        <widget class="QLabel" name="placeholder_philhealth_num">
          <property name="styleSheet">
           <string notr="true">color: rgb(255, 255, 255);
 font-size: 16px</string>
          </property>
          <property name="text">
-          <string>Patient ID:</string>
+          <string>5678-1234-9012</string>
          </property>
         </widget>
        </item>
@@ -377,36 +377,14 @@ font-size: 16px</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="2">
-        <widget class="QLabel" name="patient_id_label_3">
+       <item row="1" column="1">
+        <widget class="QLabel" name="placeholder_p_bloodType">
          <property name="styleSheet">
           <string notr="true">color: rgb(255, 255, 255);
 font-size: 16px</string>
          </property>
          <property name="text">
-          <string>Age:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
-        <widget class="QLabel" name="placeholder_age">
-         <property name="styleSheet">
-          <string notr="true">color: rgb(255, 255, 255);
-font-size: 16px</string>
-         </property>
-         <property name="text">
-          <string>32</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="4">
-        <widget class="QLabel" name="patient_id_label_5">
-         <property name="styleSheet">
-          <string notr="true">color: rgb(255, 255, 255);
-font-size: 16px</string>
-         </property>
-         <property name="text">
-          <string>Registered:</string>
+          <string>A+</string>
          </property>
         </widget>
        </item>
@@ -432,17 +410,6 @@ font-size: 16px</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="QLabel" name="placeholder_p_bloodType">
-         <property name="styleSheet">
-          <string notr="true">color: rgb(255, 255, 255);
-font-size: 16px</string>
-         </property>
-         <property name="text">
-          <string>A+</string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="2">
         <widget class="QLabel" name="patient_id_label_4">
          <property name="styleSheet">
@@ -454,14 +421,47 @@ font-size: 16px</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="3" colspan="3">
-        <widget class="QLabel" name="placeholder_philhealth_num">
+       <item row="0" column="0">
+        <widget class="QLabel" name="patient_id_label">
          <property name="styleSheet">
           <string notr="true">color: rgb(255, 255, 255);
 font-size: 16px</string>
          </property>
          <property name="text">
-          <string>5678-1234-9012</string>
+          <string>Patient ID:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="4">
+        <widget class="QLabel" name="patient_id_label_5">
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 255);
+font-size: 16px</string>
+         </property>
+         <property name="text">
+          <string>Registered:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="placeholder_age">
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 255);
+font-size: 16px</string>
+         </property>
+         <property name="text">
+          <string>32</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="patient_id_label_3">
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 255);
+font-size: 16px</string>
+         </property>
+         <property name="text">
+          <string>Age:</string>
          </property>
         </widget>
        </item>
@@ -688,7 +688,7 @@ QPushButton:!checked {
        <x>40</x>
        <y>340</y>
        <width>471</width>
-       <height>381</height>
+       <height>351</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -708,7 +708,7 @@ border-radius: 15px;</string>
         <x>0</x>
         <y>0</y>
         <width>471</width>
-        <height>340</height>
+        <height>351</height>
        </rect>
       </property>
       <property name="autoFillBackground">
@@ -772,7 +772,7 @@ QScrollBar::handle:vertical {
        <bool>false</bool>
       </property>
       <property name="columnCount">
-       <number>6</number>
+       <number>3</number>
       </property>
       <attribute name="horizontalHeaderCascadingSectionResizes">
        <bool>false</bool>
@@ -781,7 +781,7 @@ QScrollBar::handle:vertical {
        <number>32</number>
       </attribute>
       <attribute name="horizontalHeaderDefaultSectionSize">
-       <number>75</number>
+       <number>150</number>
       </attribute>
       <attribute name="horizontalHeaderHighlightSections">
        <bool>true</bool>
@@ -803,27 +803,12 @@ QScrollBar::handle:vertical {
       </attribute>
       <column>
        <property name="text">
-        <string>START DATE</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
         <string>METHOD</string>
        </property>
       </column>
       <column>
        <property name="text">
         <string>STATUS</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>PRESCRIBED BY</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>NEXT VISIT</string>
        </property>
       </column>
       <column>
@@ -839,7 +824,7 @@ QScrollBar::handle:vertical {
        <x>540</x>
        <y>340</y>
        <width>501</width>
-       <height>381</height>
+       <height>421</height>
       </rect>
      </property>
      <property name="sizePolicy">
@@ -864,7 +849,7 @@ border-radius: 15px;</string>
        <rect>
         <x>15</x>
         <y>10</y>
-        <width>181</width>
+        <width>241</width>
         <height>21</height>
        </rect>
       </property>
@@ -887,49 +872,15 @@ color: rgb(26, 26, 62);</string>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_5">
+       <item row="5" column="1">
+        <widget class="QLabel" name="next_followup_value">
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-font-weight: bold;
-color: rgb(26, 26, 62);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
          </property>
          <property name="text">
-          <string>Family Planning Method:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="method_value">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-color: rgb(60, 60, 80);</string>
-         </property>
-         <property name="text">
-          <string>Oral Contraceptives (Pills)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_6">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-font-weight: bold;
-color: rgb(26, 26, 62);</string>
-         </property>
-         <property name="text">
-          <string>Start Date:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLabel" name="start_date_value">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-color: rgb(60, 60, 80);</string>
-         </property>
-         <property name="text">
-          <string>03/15/2024</string>
+          <string>06/15/2024</string>
          </property>
         </widget>
        </item>
@@ -938,10 +889,48 @@ color: rgb(60, 60, 80);</string>
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;Segoe UI&quot;;
 font-weight: bold;
-color: rgb(26, 26, 62);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
          </property>
          <property name="text">
           <string>End Date:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_6">
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+font-weight: bold;
+color: rgb(26, 26, 62);
+border: none;</string>
+         </property>
+         <property name="text">
+          <string>Start Date:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLabel" name="prescribed_by_value">
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+color: rgb(26, 26, 62);
+border: none;</string>
+         </property>
+         <property name="text">
+          <string>Dr. Maria Santos</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="method_value">
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+color: rgb(26, 26, 62);
+border: none;</string>
+         </property>
+         <property name="text">
+          <string>Oral Contraceptives (Pills)</string>
          </property>
         </widget>
        </item>
@@ -949,7 +938,8 @@ color: rgb(26, 26, 62);</string>
         <widget class="QLabel" name="end_date_value">
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-color: rgb(60, 60, 80);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
          </property>
          <property name="text">
           <string>03/15/2025</string>
@@ -961,21 +951,11 @@ color: rgb(60, 60, 80);</string>
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;Segoe UI&quot;;
 font-weight: bold;
-color: rgb(26, 26, 62);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
          </property>
          <property name="text">
           <string>Status:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLabel" name="status_value">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-color: rgb(50, 150, 50);</string>
-         </property>
-         <property name="text">
-          <string>Active</string>
          </property>
         </widget>
        </item>
@@ -984,21 +964,35 @@ color: rgb(50, 150, 50);</string>
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;Segoe UI&quot;;
 font-weight: bold;
-color: rgb(26, 26, 62);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
          </property>
          <property name="text">
           <string>Prescribed By:</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
-        <widget class="QLabel" name="prescribed_by_value">
+       <item row="3" column="1">
+        <widget class="QLabel" name="status_value">
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-color: rgb(60, 60, 80);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
          </property>
          <property name="text">
-          <string>Dr. Maria Santos</string>
+          <string>Active</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="start_date_value">
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+color: rgb(26, 26, 62);
+border: none;</string>
+         </property>
+         <property name="text">
+          <string>03/15/2024</string>
          </property>
         </widget>
        </item>
@@ -1007,44 +1001,24 @@ color: rgb(60, 60, 80);</string>
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;Segoe UI&quot;;
 font-weight: bold;
-color: rgb(26, 26, 62);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
          </property>
          <property name="text">
           <string>Next Follow-up:</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
-        <widget class="QLabel" name="next_followup_value">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-color: rgb(60, 60, 80);</string>
-         </property>
-         <property name="text">
-          <string>06/15/2024</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_11">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_5">
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;Segoe UI&quot;;
 font-weight: bold;
-color: rgb(26, 26, 62);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
          </property>
          <property name="text">
-          <string>Effectiveness:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
-        <widget class="QLabel" name="effectiveness_value">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-color: rgb(60, 60, 80);</string>
-         </property>
-         <property name="text">
-          <string>99% with perfect use</string>
+          <string>Family Planning Method:</string>
          </property>
         </widget>
        </item>
@@ -1091,12 +1065,62 @@ padding: 5px;</string>
        <bool>true</bool>
       </property>
      </widget>
+     <widget class="QPushButton" name="discontinue_btn">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>380</y>
+        <width>121</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border-radius: 12px;
+background-color: rgb(26, 26, 62);
+color: white;
+border: 1px solid rgb(158, 136, 163);</string>
+      </property>
+      <property name="text">
+       <string>Discontinue</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="edit_plan_btn">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>380</y>
+        <width>121</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border-radius: 12px;
+background-color: rgb(192, 116, 182);
+color: white;
+border: 1px solid rgb(158, 136, 163);</string>
+      </property>
+      <property name="text">
+       <string>Edit Plan</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QPushButton" name="add_plan_btn">
      <property name="geometry">
       <rect>
        <x>390</x>
-       <y>310</y>
+       <y>300</y>
        <width>121</width>
        <height>31</height>
       </rect>
@@ -1115,81 +1139,6 @@ border: 1px solid rgb(158, 136, 163);</string>
      </property>
      <property name="text">
       <string>+ Add Plan</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="edit_plan_btn">
-     <property name="geometry">
-      <rect>
-       <x>920</x>
-       <y>700</y>
-       <width>121</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 12px;
-background-color: rgb(192, 116, 182);
-color: white;
-border: 1px solid rgb(158, 136, 163);</string>
-     </property>
-     <property name="text">
-      <string>Edit Plan</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="discontinue_btn">
-     <property name="geometry">
-      <rect>
-       <x>790</x>
-       <y>700</y>
-       <width>121</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 12px;
-background-color: rgb(26, 26, 62);
-color: white;
-border: 1px solid rgb(158, 136, 163);</string>
-     </property>
-     <property name="text">
-      <string>Discontinue</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="print_btn">
-     <property name="geometry">
-      <rect>
-       <x>660</x>
-       <y>700</y>
-       <width>121</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 12px;
-background-color: rgb(236, 198, 220);
-color: rgb(26, 26, 62);
-border: 1px solid rgb(158, 136, 163);</string>
-     </property>
-     <property name="text">
-      <string>Print Summary</string>
      </property>
     </widget>
    </widget>

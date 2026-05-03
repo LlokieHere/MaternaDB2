@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FamilyPlanningDialog</class>
+ <widget class="QDialog" name="FamilyPlanningDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>680</width>
+    <height>750</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Add/Edit Family Planning</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(240, 230, 240);</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>15</number>
+   </property>
+   <property name="leftMargin">
+    <number>20</number>
+   </property>
+   <property name="topMargin">
+    <number>20</number>
+   </property>
+   <property name="rightMargin">
+    <number>20</number>
+   </property>
+   <property name="bottomMargin">
+    <number>20</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="title_label">
+     <property name="font">
+      <font>
+       <family>Arial Black</family>
+       <pointsize>18</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: rgb(26, 26, 62);</string>
+     </property>
+     <property name="text">
+      <string>Family Planning Method</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frame">
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(236, 198, 220);
+border-radius: 15px;
+border: 1px solid rgb(158, 136, 163);</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <property name="leftMargin">
+       <number>20</number>
+      </property>
+      <property name="topMargin">
+       <number>20</number>
+      </property>
+      <property name="rightMargin">
+       <number>20</number>
+      </property>
+      <property name="bottomMargin">
+       <number>20</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>12</number>
+      </property>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_notes">
+        <property name="styleSheet">
+         <string notr="true">font-weight: bold;
+color: rgb(26, 26, 62);</string>
+        </property>
+        <property name="text">
+         <string>Additional Notes:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_start_date">
+        <property name="styleSheet">
+         <string notr="true">font-weight: bold;
+color: rgb(26, 26, 62);</string>
+        </property>
+        <property name="text">
+         <string>Start Date:*</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" colspan="3">
+       <widget class="QComboBox" name="method_type">
+        <property name="styleSheet">
+         <string notr="true">background-color: white;
+border-radius: 8px;
+padding: 8px;
+border: 1px solid rgb(158, 136, 163);</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>Oral Contraceptives (Pills)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Injectable (Depo-Provera)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Intrauterine Device (IUD)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Implant (Implanon/Nexplanon)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Condoms (Male/Female)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Natural Family Planning</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Sterilization (BTL/Vasectomy)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Vaginal Ring (NuvaRing)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Patch (Ortho Evra)</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_method">
+        <property name="styleSheet">
+         <string notr="true">font-weight: bold;
+color: rgb(26, 26, 62);</string>
+        </property>
+        <property name="text">
+         <string>Method Type:*</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QDateEdit" name="start_date">
+        <property name="styleSheet">
+         <string notr="true">background-color: white;
+border-radius: 8px;
+padding: 8px;
+border: 1px solid rgb(158, 136, 163);</string>
+        </property>
+        <property name="calendarPopup">
+         <bool>true</bool>
+        </property>
+        <property name="date">
+         <date>
+          <year>2000</year>
+          <month>1</month>
+          <day>1</day>
+         </date>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1" colspan="3">
+       <widget class="QTextEdit" name="notes">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: white;
+border-radius: 8px;
+padding: 8px;
+border: 1px solid rgb(158, 136, 163);</string>
+        </property>
+        <property name="placeholderText">
+         <string>Additional clinical notes or observations...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QDateEdit" name="end_date">
+        <property name="styleSheet">
+         <string notr="true">background-color: white;
+border-radius: 8px;
+padding: 8px;
+border: 1px solid rgb(158, 136, 163);</string>
+        </property>
+        <property name="specialValueText">
+         <string>Not set</string>
+        </property>
+        <property name="calendarPopup">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1" colspan="3">
+       <widget class="QTextEdit" name="side_effects">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: white;
+border-radius: 8px;
+padding: 8px;
+border: 1px solid rgb(158, 136, 163);</string>
+        </property>
+        <property name="placeholderText">
+         <string>e.g., Nausea, headache, weight gain, mood changes...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_status">
+        <property name="styleSheet">
+         <string notr="true">font-weight: bold;
+color: rgb(26, 26, 62);</string>
+        </property>
+        <property name="text">
+         <string>Status:*</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_follow_up">
+        <property name="styleSheet">
+         <string notr="true">font-weight: bold;
+color: rgb(26, 26, 62);</string>
+        </property>
+        <property name="text">
+         <string>Next Follow-up:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1" colspan="3">
+       <widget class="QDateEdit" name="next_follow_up">
+        <property name="styleSheet">
+         <string notr="true">background-color: white;
+border-radius: 8px;
+padding: 8px;
+border: 1px solid rgb(158, 136, 163);</string>
+        </property>
+        <property name="specialValueText">
+         <string>Not scheduled</string>
+        </property>
+        <property name="calendarPopup">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_side_effects">
+        <property name="styleSheet">
+         <string notr="true">font-weight: bold;
+color: rgb(26, 26, 62);</string>
+        </property>
+        <property name="text">
+         <string>Side Effects Experienced:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" colspan="3">
+       <widget class="QComboBox" name="status">
+        <property name="styleSheet">
+         <string notr="true">background-color: white;
+border-radius: 8px;
+padding: 8px;
+border: 1px solid rgb(158, 136, 163);</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>Active</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Discontinued</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Completed</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Expired</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLabel" name="label_end_date">
+        <property name="styleSheet">
+         <string notr="true">font-weight: bold;
+color: rgb(26, 26, 62);</string>
+        </property>
+        <property name="text">
+         <string>End Date:</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="button_frame">
+     <property name="styleSheet">
+      <string notr="true">background-color: transparent;</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>10</number>
+      </property>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="save_btn">
+        <property name="minimumSize">
+         <size>
+          <width>120</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(192, 116, 182);
+color: white;
+border-radius: 12px;
+font-weight: bold;
+font-size: 14px;
+border: none;</string>
+        </property>
+        <property name="text">
+         <string>Save</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="cancel_btn">
+        <property name="minimumSize">
+         <size>
+          <width>120</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(26, 26, 62);
+color: white;
+border-radius: 12px;
+font-weight: bold;
+font-size: 14px;
+border: none;</string>
+        </property>
+        <property name="text">
+         <string>Cancel</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

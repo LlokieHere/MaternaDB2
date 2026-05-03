@@ -1,3 +1,4 @@
+from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QMainWindow, QTableWidgetItem
 from screens.dashboard_ui import Ui_DashboardScreen
 from database import get_connection
@@ -153,7 +154,10 @@ class DashboardScreen(QMainWindow):
         self.load_recent_patients()
 
     def go_to_patient_records(self):
-        print("Go to Patient Records")
+        from screens.patient_records_screen import PatientRecordScreen
+        self.window = PatientRecordScreen()
+        self.window.showMaximized()
+        self.close()
 
     def go_to_prenatal_care(self):
         from screens.prenatal_care_screen import PrenatalCareScreen

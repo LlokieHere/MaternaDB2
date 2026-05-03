@@ -247,7 +247,7 @@ border-radius: 12px;</string>
       <rect>
        <x>40</x>
        <y>20</y>
-       <width>301</width>
+       <width>321</width>
        <height>61</height>
       </rect>
      </property>
@@ -688,7 +688,7 @@ QPushButton:!checked {
        <x>40</x>
        <y>340</y>
        <width>471</width>
-       <height>381</height>
+       <height>361</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -772,7 +772,7 @@ QScrollBar::handle:vertical {
        <bool>false</bool>
       </property>
       <property name="columnCount">
-       <number>6</number>
+       <number>4</number>
       </property>
       <attribute name="horizontalHeaderCascadingSectionResizes">
        <bool>false</bool>
@@ -818,16 +818,6 @@ QScrollBar::handle:vertical {
       </column>
       <column>
        <property name="text">
-        <string>DOCTOR</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>STATUS</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
         <string>ACTION</string>
        </property>
       </column>
@@ -836,7 +826,7 @@ QScrollBar::handle:vertical {
     <widget class="QFrame" name="right_details">
      <property name="geometry">
       <rect>
-       <x>540</x>
+       <x>530</x>
        <y>340</y>
        <width>501</width>
        <height>381</height>
@@ -869,9 +859,10 @@ border-radius: 15px;</string>
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">font: 14pt &quot;Segoe UI&quot;;
+       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
 font-weight: bold;
-color: rgb(26, 26, 62);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
       </property>
       <property name="text">
        <string>Appointment Details</string>
@@ -887,49 +878,53 @@ color: rgb(26, 26, 62);</string>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
+       <item row="1" column="1">
+        <widget class="QLabel" name="time_value">
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+color: rgb(26, 26, 62);
+border: none;</string>
+         </property>
+         <property name="text">
+          <string>10:30 AM</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLabel" name="doctor_value">
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+color: rgb(26, 26, 62);
+border: none;</string>
+         </property>
+         <property name="text">
+          <string>Dr. James Wilson</string>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_5">
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;Segoe UI&quot;;
 font-weight: bold;
-color: rgb(26, 26, 62);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
          </property>
          <property name="text">
           <string>Appointment Date:</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="date_value">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-color: rgb(60, 60, 80);</string>
-         </property>
-         <property name="text">
-          <string>05/25/2024</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_6">
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_10">
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;Segoe UI&quot;;
 font-weight: bold;
-color: rgb(26, 26, 62);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
          </property>
          <property name="text">
-          <string>Time:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLabel" name="time_value">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-color: rgb(60, 60, 80);</string>
-         </property>
-         <property name="text">
-          <string>10:30 AM</string>
+          <string>Type</string>
          </property>
         </widget>
        </item>
@@ -938,7 +933,8 @@ color: rgb(60, 60, 80);</string>
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;Segoe UI&quot;;
 font-weight: bold;
-color: rgb(26, 26, 62);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
          </property>
          <property name="text">
           <string>Appointment Type:</string>
@@ -949,10 +945,36 @@ color: rgb(26, 26, 62);</string>
         <widget class="QLabel" name="type_value">
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-color: rgb(60, 60, 80);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
          </property>
          <property name="text">
           <string>Prenatal Checkup</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_6">
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+font-weight: bold;
+color: rgb(26, 26, 62);
+border: none;</string>
+         </property>
+         <property name="text">
+          <string>Time:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="date_value">
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+color: rgb(26, 26, 62);
+border: none;</string>
+         </property>
+         <property name="text">
+          <string>05/25/2024</string>
          </property>
         </widget>
        </item>
@@ -961,90 +983,23 @@ color: rgb(60, 60, 80);</string>
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;Segoe UI&quot;;
 font-weight: bold;
-color: rgb(26, 26, 62);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
          </property>
          <property name="text">
           <string>Doctor:</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="1">
-        <widget class="QLabel" name="doctor_value">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-color: rgb(60, 60, 80);</string>
-         </property>
-         <property name="text">
-          <string>Dr. James Wilson</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_9">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-font-weight: bold;
-color: rgb(26, 26, 62);</string>
-         </property>
-         <property name="text">
-          <string>Status:</string>
-         </property>
-        </widget>
-       </item>
        <item row="4" column="1">
-        <widget class="QLabel" name="status_value">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-color: rgb(50, 150, 50);</string>
-         </property>
-         <property name="text">
-          <string>Scheduled</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_10">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-font-weight: bold;
-color: rgb(26, 26, 62);</string>
-         </property>
-         <property name="text">
-          <string>Duration:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
         <widget class="QLabel" name="duration_value">
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-color: rgb(60, 60, 80);</string>
+color: rgb(26, 26, 62);
+border: none;</string>
          </property>
          <property name="text">
-          <string>30 minutes</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_11">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-font-weight: bold;
-color: rgb(26, 26, 62);</string>
-         </property>
-         <property name="text">
-          <string>Location:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
-        <widget class="QLabel" name="location_value">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Segoe UI&quot;;
-color: rgb(60, 60, 80);</string>
-         </property>
-         <property name="text">
-          <string>Room 204, Maternity Wing</string>
+          <string>Prenatal Checkup</string>
          </property>
         </widget>
        </item>
@@ -1092,104 +1047,28 @@ padding: 5px;</string>
       </property>
      </widget>
     </widget>
-    <widget class="QPushButton" name="add_appointment_btn">
+    <widget class="QLabel" name="label_12">
      <property name="geometry">
       <rect>
-       <x>390</x>
-       <y>310</y>
-       <width>121</width>
-       <height>31</height>
+       <x>40</x>
+       <y>280</y>
+       <width>301</width>
+       <height>61</height>
       </rect>
      </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+     <property name="font">
+      <font>
+       <family>Segoe UI</family>
+       <pointsize>16</pointsize>
+       <italic>false</italic>
+       <bold>false</bold>
+      </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-radius: 12px;
-background-color: rgb(192, 116, 182);
-color: white;
-border: 1px solid rgb(158, 136, 163);</string>
+      <string notr="true">font: 16pt &quot;Segoe UI&quot;;</string>
      </property>
      <property name="text">
-      <string>+ Add Appointment</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="edit_appointment_btn">
-     <property name="geometry">
-      <rect>
-       <x>920</x>
-       <y>700</y>
-       <width>121</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 12px;
-background-color: rgb(192, 116, 182);
-color: white;
-border: 1px solid rgb(158, 136, 163);</string>
-     </property>
-     <property name="text">
-      <string>Edit Appointment</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="cancel_btn">
-     <property name="geometry">
-      <rect>
-       <x>790</x>
-       <y>700</y>
-       <width>121</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 12px;
-background-color: rgb(26, 26, 62);
-color: white;
-border: 1px solid rgb(158, 136, 163);</string>
-     </property>
-     <property name="text">
-      <string>Cancel</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="reminder_btn">
-     <property name="geometry">
-      <rect>
-       <x>660</x>
-       <y>700</y>
-       <width>121</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 12px;
-background-color: rgb(236, 198, 220);
-color: rgb(26, 26, 62);
-border: 1px solid rgb(158, 136, 163);</string>
-     </property>
-     <property name="text">
-      <string>Send Reminder</string>
+      <string>Completed Appointments</string>
      </property>
     </widget>
    </widget>

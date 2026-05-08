@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1223</width>
+    <height>674</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QFrame" name="frame">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>60</y>
+      <width>231</width>
+      <height>581</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"> background-color: rgb(192, 116, 182)</string>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QPushButton" name="pushButton">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>130</y>
+       <width>191</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(240, 230, 240)</string>
+     </property>
+     <property name="text">
+      <string>Dashboard</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_2">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>180</y>
+       <width>191</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(240, 230, 240)</string>
+     </property>
+     <property name="text">
+      <string>Patient Records</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_3">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>230</y>
+       <width>191</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(240, 230, 240)</string>
+     </property>
+     <property name="text">
+      <string>Prenatal Care</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_4">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>280</y>
+       <width>221</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(240, 230, 240)</string>
+     </property>
+     <property name="text">
+      <string>Appointments        </string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_5">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>500</y>
+       <width>191</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Log out</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="frame_2">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>1231</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(26, 26, 62)
+</string>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>20</y>
+       <width>91</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Segoe UI</family>
+       <pointsize>12</pointsize>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: rgb(255, 255, 255);</string>
+     </property>
+     <property name="text">
+      <string>MATERNADB</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>10</y>
+       <width>100</width>
+       <height>45</height>
+      </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>45</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <family>Segoe UI</family>
+       <pointsize>12</pointsize>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: rgb(255, 255, 255);</string>
+     </property>
+     <property name="text">
+      <string>LOGO</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="frame_3">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>60</y>
+      <width>1001</width>
+      <height>591</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Nirmala UI Semilight</family>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(240, 230, 240)</string>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>20</y>
+       <width>321</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Arial Black</family>
+       <pointsize>30</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Appointments</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_6">
+     <property name="geometry">
+      <rect>
+       <x>840</x>
+       <y>40</y>
+       <width>121</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(156, 39, 176);
+color: rgb(255, 255, 255);
+border-radius: 10px;</string>
+     </property>
+     <property name="text">
+      <string>+ New Appointment</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_7">
+     <property name="geometry">
+      <rect>
+       <x>650</x>
+       <y>40</y>
+       <width>181</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(106, 27, 154);
+color: rgb(255, 255, 255);
+border-radius: 10px;</string>
+     </property>
+     <property name="text">
+      <string>View Completed Appointments</string>
+     </property>
+    </widget>
+    <widget class="QTableWidget" name="left_prescription_date_and_purpose">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>100</y>
+       <width>911</width>
+       <height>381</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QTableWidget {
+    background-color:rgb(236, 198, 220);
+    border: 1px solid rgb(158, 136, 163);
+    border-radius: 15px;
+}
+
+QTableWidget::item {
+    background-color: rgb(236, 198, 220);
+    color: rgb(21, 23, 61);
+    padding: 8px;
+    border: none;
+    border-bottom: 1px solid rgb(210, 177, 200);
+}
+
+QTableWidget::item:selected {
+    background-color: black;
+    color: rgb(21, 23, 61);
+}
+
+QHeaderView::section {
+    background-color: rgb(236, 198, 220);
+    color: rgb(21, 23, 61);
+    font-weight: bold;
+    font-size: 10px;
+    border: none;
+    border-bottom: 1px solid rgb(155, 132, 160);
+    padding: 5px;
+}
+
+QScrollBar:vertical {
+    background: white;
+    width: 6px;
+    border-radius: 3px;
+}
+
+QScrollBar::handle:vertical {
+    background: rgb(178, 100, 168);
+    border-radius: 3px;
+}</string>
+     </property>
+     <property name="verticalScrollBarPolicy">
+      <enum>Qt::ScrollBarAsNeeded</enum>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>false</bool>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="verticalScrollMode">
+      <enum>QAbstractItemView::ScrollPerPixel</enum>
+     </property>
+     <property name="horizontalScrollMode">
+      <enum>QAbstractItemView::ScrollPerPixel</enum>
+     </property>
+     <property name="showGrid">
+      <bool>false</bool>
+     </property>
+     <property name="columnCount">
+      <number>5</number>
+     </property>
+     <attribute name="horizontalHeaderCascadingSectionResizes">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="horizontalHeaderMinimumSectionSize">
+      <number>32</number>
+     </attribute>
+     <attribute name="horizontalHeaderDefaultSectionSize">
+      <number>200</number>
+     </attribute>
+     <attribute name="horizontalHeaderHighlightSections">
+      <bool>true</bool>
+     </attribute>
+     <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="horizontalHeaderStretchLastSection">
+      <bool>true</bool>
+     </attribute>
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="verticalHeaderCascadingSectionResizes">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="verticalHeaderDefaultSectionSize">
+      <number>40</number>
+     </attribute>
+     <row>
+      <property name="text">
+       <string>#0001</string>
+      </property>
+     </row>
+     <column>
+      <property name="text">
+       <string>Patient</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Date</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Time</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Status</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Action</string>
+      </property>
+     </column>
+    </widget>
+   </widget>
+   <zorder>frame_3</zorder>
+   <zorder>frame</zorder>
+   <zorder>frame_2</zorder>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1223</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuAppointments">
+    <property name="title">
+     <string>MaternaDB</string>
+    </property>
+   </widget>
+   <addaction name="menuAppointments"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionMaternaDB">
+   <property name="text">
+    <string>MaternaDB</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../../../../Downloads/MaternaDB_logo.png"/>
+ </resources>
+ <connections/>
+</ui>

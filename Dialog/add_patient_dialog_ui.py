@@ -9,7 +9,7 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
-class Ui_PatientProfileDialog(object):
+class Ui_StackedWidget(object):
     def setupUi(self, StackedWidget):
         StackedWidget.setObjectName("StackedWidget")
         StackedWidget.resize(400, 533)

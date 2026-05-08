@@ -1,6 +1,8 @@
 from PyQt6 import QtWidgets, QtCore
 from PyQt6.QtWidgets import QMainWindow, QTableWidgetItem, QMessageBox
 from screens.patient_records_ui import Ui_PatientRecord
+from Dialog.add_patient_dialog import EditPatientDialog
+from PyQt6.QtWidgets import QDialog
 from database import get_connection
 from PyQt6.QtCore import Qt
 
@@ -8,6 +10,7 @@ from PyQt6.QtCore import Qt
 class PatientRecordScreen(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.dialog = None
         self.ui = Ui_PatientRecord()
         self.ui.setupUi(self)
 
@@ -20,7 +23,7 @@ class PatientRecordScreen(QMainWindow):
         self.setWindowTitle("MaternaDB - Patient Records")
 
         # connections
-        self.ui.add_patient_btn.clicked.connect(self.add_patient)
+        self.ui.add_patient_btn.clicked.connect(self.open_add_patient_dialog)
         self.ui.remove_patient_btn.clicked.connect(self.remove_patient)
         self.ui.lineEdit.textChanged.connect(self.search_patient)
 
@@ -93,12 +96,10 @@ class PatientRecordScreen(QMainWindow):
             btn.setStyleSheet("""
                 background-color: rgb(236, 198, 220);
                 border-radius: 8px;
-                padding: 4px;
                 margin: 2px;
             """)
 
             patient_id = row_data[0]
-
             btn.clicked.connect(
                 lambda _, pid=patient_id: self.view_patient_by_id(pid)
             )
@@ -156,33 +157,11 @@ class PatientRecordScreen(QMainWindow):
     # =====================================================
     # ➕ ADD PATIENT
     # =====================================================
-    def add_patient(self):
-        conn = get_connection()
-        if not conn:
-            return
+    def open_add_patient_dialog(self):
+        self.dialog = EditPatientDialog(mode="add", parent=self)
 
-        try:
-            cursor = conn.cursor()
-
-            cursor.execute("""
-                INSERT INTO patient_profile 
-                (first_name, middle_name, last_name, date_of_birth, contact_number)
-                VALUES (%s, %s, %s, %s, %s)
-            """, (
-                "Juan",
-                "D",
-                "Cruz",
-                "2000-01-01",
-                "09123456789"
-            ))
-
-            conn.commit()
-            conn.close()
-
-            self.load_patients()
-
-        except Exception as e:
-            QMessageBox.critical(self, "Insert Error", str(e))
+        if self.dialog.exec() == QDialog.DialogCode.Accepted:
+            self.load_patients()  # refresh your table after adding
 
     # =====================================================
     # ❌ REMOVE PATIENT

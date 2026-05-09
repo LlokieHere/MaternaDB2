@@ -82,7 +82,7 @@ class Ui_MainWindow(object):
         self.forgotButton.setCheckable(True)
         self.forgotButton.setObjectName("forgotButton")
         self.pushButton = QtWidgets.QPushButton(parent=self.log_inFrame)
-        self.pushButton.setGeometry(QtCore.QRect(240, 290, 75, 24))
+        self.pushButton.setGeometry(QtCore.QRect(240, 290, 75, 31))
         self.pushButton.setStyleSheet("background-color: rgb(246, 246, 246);")
         self.pushButton.setObjectName("pushButton")
         MainWindow.setCentralWidget(self.centralwidget)

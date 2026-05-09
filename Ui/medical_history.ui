@@ -54,8 +54,7 @@
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 230, 240);
-border-radius: 12px;</string>
+      <string notr="true">background-color: rgb(240, 230, 240);</string>
      </property>
      <property name="text">
       <string>Dashboard</string>
@@ -66,13 +65,12 @@ border-radius: 12px;</string>
       <rect>
        <x>20</x>
        <y>230</y>
-       <width>221</width>
+       <width>191</width>
        <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 230, 240);
-border-radius: 12px;</string>
+      <string notr="true">background-color: rgb(240, 230, 240);</string>
      </property>
      <property name="text">
       <string>Patient Records</string>
@@ -89,7 +87,7 @@ border-radius: 12px;</string>
      </property>
      <property name="styleSheet">
       <string notr="true">background-color: rgb(240, 230, 240);
-border-radius: 12px;</string>
+</string>
      </property>
      <property name="text">
       <string>Prenatal Care</string>
@@ -106,7 +104,7 @@ border-radius: 12px;</string>
      </property>
      <property name="styleSheet">
       <string notr="true">background-color: rgb(240, 230, 240);
-border-radius: 12px;</string>
+</string>
      </property>
      <property name="text">
       <string>Appointments</string>
@@ -122,8 +120,7 @@ border-radius: 12px;</string>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 230, 240);
-border-radius: 12px;</string>
+      <string notr="true"/>
      </property>
      <property name="text">
       <string>Log out</string>
@@ -686,7 +683,7 @@ border-radius: 15px;</string>
         <x>0</x>
         <y>0</y>
         <width>991</width>
-        <height>321</height>
+        <height>381</height>
        </rect>
       </property>
       <property name="autoFillBackground">
@@ -799,56 +796,6 @@ QScrollBar::handle:vertical {
         <string>NOTES</string>
        </property>
       </column>
-     </widget>
-     <widget class="QPushButton" name="add_record_btn">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>340</y>
-        <width>141</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">border-radius: 12px;
-background-color: rgb(192, 116, 182);
-color: white;
-border: 1px solid rgb(158, 136, 163);</string>
-      </property>
-      <property name="text">
-       <string>+ Add Medical Record</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="edit_notes_btn">
-      <property name="geometry">
-       <rect>
-        <x>720</x>
-        <y>340</y>
-        <width>111</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">border-radius: 12px;
-background-color: rgb(192, 116, 182);
-color: white;
-border: 1px solid rgb(158, 136, 163);</string>
-      </property>
-      <property name="text">
-       <string>Edit Notes</string>
-      </property>
      </widget>
     </widget>
     <widget class="QPushButton" name="add_condition_btn">

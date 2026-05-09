@@ -2,14 +2,15 @@ import psycopg2
 
 def get_connection():
     try:
-        connection = psycopg2.connect(
-            host="localhost",
-            database="materna_db",    # your database name
-            user="postgres",         # your postgres username
-            password="Kr1sR00T_365", # your postgres password
-            port="5432"              # default postgres port
+        conn = psycopg2.connect(
+            host="aws-1-ap-northeast-1.pooler.supabase.com",
+            port=5432,
+            database="postgres",
+            user="postgres.vnygeyyyzrugzpgclvje",  # ← make sure this is exact
+            password="MaternaDB789"
         )
-        return connection
+        print("✅ Connected to Supabase successfully!")
+        return conn
     except Exception as e:
-        print(f"Database connection failed: {e}")
+        print(f"❌ Connection error: {e}")
         return None

@@ -61,7 +61,7 @@
      </property>
      <property name="styleSheet">
       <string notr="true">background-color: rgb(240, 230, 240);
-border-radius: 12px;</string>
+</string>
      </property>
      <property name="text">
       <string>Dashboard</string>
@@ -72,7 +72,7 @@ border-radius: 12px;</string>
       <rect>
        <x>20</x>
        <y>230</y>
-       <width>221</width>
+       <width>191</width>
        <height>41</height>
       </rect>
      </property>
@@ -84,7 +84,7 @@ border-radius: 12px;</string>
      </property>
      <property name="styleSheet">
       <string notr="true">background-color: rgb(240, 230, 240);
-border-radius: 12px;</string>
+</string>
      </property>
      <property name="text">
       <string>Patient Records</string>
@@ -106,8 +106,7 @@ border-radius: 12px;</string>
       </sizepolicy>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 230, 240);
-border-radius: 12px;</string>
+      <string notr="true">background-color: rgb(240, 230, 240);</string>
      </property>
      <property name="text">
       <string>Prenatal Care</string>
@@ -129,8 +128,7 @@ border-radius: 12px;</string>
       </sizepolicy>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 230, 240);
-border-radius: 12px;</string>
+      <string notr="true">background-color: rgb(240, 230, 240);</string>
      </property>
      <property name="text">
       <string>        Appointments        </string>

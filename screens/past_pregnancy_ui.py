@@ -39,17 +39,17 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.pushButton.sizePolicy().hasHeightForWidth())
         self.pushButton.setSizePolicy(sizePolicy)
         self.pushButton.setStyleSheet("background-color: rgb(240, 230, 240);\n"
-"border-radius: 12px;")
+"")
         self.pushButton.setObjectName("pushButton")
         self.pushButton_2 = QtWidgets.QPushButton(parent=self.frame)
-        self.pushButton_2.setGeometry(QtCore.QRect(20, 230, 221, 41))
+        self.pushButton_2.setGeometry(QtCore.QRect(20, 230, 191, 41))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButton_2.sizePolicy().hasHeightForWidth())
         self.pushButton_2.setSizePolicy(sizePolicy)
         self.pushButton_2.setStyleSheet("background-color: rgb(240, 230, 240);\n"
-"border-radius: 12px;")
+"")
         self.pushButton_2.setObjectName("pushButton_2")
         self.pushButton_3 = QtWidgets.QPushButton(parent=self.frame)
         self.pushButton_3.setGeometry(QtCore.QRect(20, 280, 191, 41))
@@ -58,8 +58,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButton_3.sizePolicy().hasHeightForWidth())
         self.pushButton_3.setSizePolicy(sizePolicy)
-        self.pushButton_3.setStyleSheet("background-color: rgb(240, 230, 240);\n"
-"border-radius: 12px;")
+        self.pushButton_3.setStyleSheet("background-color: rgb(240, 230, 240);")
         self.pushButton_3.setObjectName("pushButton_3")
         self.pushButton_4 = QtWidgets.QPushButton(parent=self.frame)
         self.pushButton_4.setGeometry(QtCore.QRect(20, 330, 191, 41))
@@ -68,8 +67,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButton_4.sizePolicy().hasHeightForWidth())
         self.pushButton_4.setSizePolicy(sizePolicy)
-        self.pushButton_4.setStyleSheet("background-color: rgb(240, 230, 240);\n"
-"border-radius: 12px;")
+        self.pushButton_4.setStyleSheet("background-color: rgb(240, 230, 240);")
         self.pushButton_4.setObjectName("pushButton_4")
         self.pushButton_5 = QtWidgets.QPushButton(parent=self.frame)
         self.pushButton_5.setGeometry(QtCore.QRect(20, 500, 191, 41))
@@ -514,6 +512,7 @@ class Ui_MainWindow(object):
 "}\n"
 "\n"
 "QTableWidget::item:selected {\n"
+"    background-color: black;\n"
 "    color: rgb(21, 23, 61);\n"
 "}\n"
 "\n"

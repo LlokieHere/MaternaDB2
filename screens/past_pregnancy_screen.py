@@ -380,14 +380,24 @@ class pastPregnancyScreen(QMainWindow):
     def go_to_pastPregnancy(self):
         pass
 
+    # ✅ Correct
     def go_to_prescription(self):
-        print("Prescriptions tab not connected yet")
+        from screens.prescription_screen import PrescriptionScreen  # ✅ add "screens."
+        self.new_window = PrescriptionScreen(self.patient_id)
+        self.new_window.showMaximized()
+        self.close()
 
     def go_to_medicalHistory(self):
-        print("Medical History tab not connected yet")
+        from screens.medical_history_screen import MedicalHistoryScreen
+        self.new_window = MedicalHistoryScreen(self.patient_id)
+        self.new_window.showMaximized()
+        self.close()
 
     def go_to_family_planning(self):
-        print("Family Planning tab not connected yet")
+        from screens.family_planning_screen import FamilyPlanningScreen
+        self.new_window = FamilyPlanningScreen(self.patient_id)
+        self.new_window.showMaximized()
+        self.close()
 
     def go_to_appointment_tab(self):
         print("Appointments tab not connected yet")

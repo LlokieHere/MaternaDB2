@@ -284,13 +284,22 @@ class PatientProfileScreen(QMainWindow):
         self.close()
 
     def go_to_medicalHistory(self):
-        print("medical history screen clicked!")
+        from screens.medical_history_screen import MedicalHistoryScreen
+        self.new_window = MedicalHistoryScreen(self.patient_id)
+        self.new_window.showMaximized()
+        self.close()
 
     def go_to_prescription(self):
-        print("Prescription screen clicked!")
+        from screens.prescription_screen import PrescriptionScreen  # ✅ add "screens."
+        self.new_window = PrescriptionScreen(self.patient_id)
+        self.new_window.showMaximized()
+        self.close()
 
     def go_to_family_planning(self):
-        print("Family Planning screen clicked!")
+        from screens.family_planning_screen import FamilyPlanningScreen
+        self.new_window = FamilyPlanningScreen(self.patient_id)
+        self.new_window.showMaximized()
+        self.close()
 
     def go_to_appointment(self):
         print("Appointment screen clicked!")

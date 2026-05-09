@@ -27,6 +27,7 @@ class PatientRecordScreen(QMainWindow):
         self.ui.remove_patient_btn.clicked.connect(self.remove_patient)
         self.ui.lineEdit.textChanged.connect(self.search_patient)
 
+        self.setup_navigation()  # ← add this
         self.load_patients()
         self.reposition_ui()
 
@@ -225,3 +226,37 @@ class PatientRecordScreen(QMainWindow):
 
         except Exception as e:
             print("Search error:", e)
+
+    def setup_navigation(self):
+        self.ui.pushButton.clicked.connect(self.go_to_dashboard)
+        self.ui.pushButton_2.clicked.connect(self.go_to_patient_records)
+        self.ui.pushButton_3.clicked.connect(self.go_to_prenatal_care)
+        self.ui.pushButton_4.clicked.connect(self.go_to_appointments)
+        self.ui.pushButton_5.clicked.connect(self.logout)
+
+    def go_to_dashboard(self):
+        from screens.dashboard_screen import DashboardScreen
+        self.new_window = DashboardScreen()
+        self.new_window.showMaximized()
+        self.close()
+
+    def go_to_patient_records(self):
+        pass  # already here
+
+    def go_to_prenatal_care(self):
+        from screens.prenatal_dashboard_screen import PrenatalDashboardScreen
+        self.new_window = PrenatalDashboardScreen()
+        self.new_window.showMaximized()
+        self.close()
+
+    def go_to_appointments(self):
+        from screens.appointments_screen import AppointmentsScreen
+        self.new_window = AppointmentsScreen()
+        self.new_window.showMaximized()
+        self.close()
+
+    def logout(self):
+        from screens.login_screen import LoginScreen
+        self.new_window = LoginScreen()
+        self.new_window.showMaximized()
+        self.close()

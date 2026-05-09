@@ -31,7 +31,7 @@
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
-   <widget class="QLabel" name="address_label_2">
+   <widget class="QLabel" name="pregnancy_details">
     <property name="geometry">
      <rect>
       <x>70</x>
@@ -56,7 +56,7 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QFrame" name="frame_2">
+   <widget class="QFrame" name="delivery_date_frame">
     <property name="geometry">
      <rect>
       <x>40</x>
@@ -76,7 +76,7 @@ border: 1px solid rgb(210, 177, 200);</string>
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="EC_middleName_label_3">
+    <widget class="QLabel" name="dekivery_date_label">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -92,7 +92,7 @@ border: 1px solid rgb(210, 177, 200);</string>
       <string>DELIVERY DATE</string>
      </property>
     </widget>
-    <widget class="QLabel" name="EC_middleName_label_4">
+    <widget class="QLabel" name="delivery_date_placeholder">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -109,7 +109,7 @@ border: 1px solid rgb(210, 177, 200);</string>
      </property>
     </widget>
    </widget>
-   <widget class="QFrame" name="frame_3">
+   <widget class="QFrame" name="delivery_type_placehlder">
     <property name="geometry">
      <rect>
       <x>210</x>
@@ -129,7 +129,7 @@ border: 1px solid rgb(210, 177, 200);</string>
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="EC_middleName_label_6">
+    <widget class="QLabel" name="delivery_type_label">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -145,7 +145,7 @@ border: 1px solid rgb(210, 177, 200);</string>
       <string>DELIVERY TYPE</string>
      </property>
     </widget>
-    <widget class="QLabel" name="EC_middleName_label_13">
+    <widget class="QLabel" name="delivery_type_placeholderr">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -162,7 +162,7 @@ border: 1px solid rgb(210, 177, 200);</string>
      </property>
     </widget>
    </widget>
-   <widget class="QFrame" name="frame_4">
+   <widget class="QFrame" name="outcome_placeholder_2">
     <property name="geometry">
      <rect>
       <x>40</x>
@@ -182,7 +182,7 @@ border: 1px solid rgb(210, 177, 200);</string>
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="EC_middleName_label_5">
+    <widget class="QLabel" name="outcome_label">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -198,7 +198,7 @@ border: 1px solid rgb(210, 177, 200);</string>
       <string>OUTCOME</string>
      </property>
     </widget>
-    <widget class="QLabel" name="EC_middleName_label_14">
+    <widget class="QLabel" name="outcome_placeholder">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -215,7 +215,7 @@ border: 1px solid rgb(210, 177, 200);</string>
      </property>
     </widget>
    </widget>
-   <widget class="QFrame" name="frame_5">
+   <widget class="QFrame" name="baby_weight_frame">
     <property name="geometry">
      <rect>
       <x>210</x>
@@ -235,7 +235,7 @@ border: 1px solid rgb(210, 177, 200);</string>
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="EC_middleName_label_7">
+    <widget class="QLabel" name="baby_weight_label">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -251,7 +251,7 @@ border: 1px solid rgb(210, 177, 200);</string>
       <string>BABY WEIGHT</string>
      </property>
     </widget>
-    <widget class="QLabel" name="EC_middleName_label_15">
+    <widget class="QLabel" name="baby_weight_placeholder">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -268,7 +268,7 @@ border: 1px solid rgb(210, 177, 200);</string>
      </property>
     </widget>
    </widget>
-   <widget class="QFrame" name="frame_6">
+   <widget class="QFrame" name="complications_frame">
     <property name="geometry">
      <rect>
       <x>40</x>
@@ -288,7 +288,7 @@ border: 1px solid rgb(210, 177, 200);</string>
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="EC_middleName_label_9">
+    <widget class="QLabel" name="complications_label">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -304,7 +304,7 @@ border: 1px solid rgb(210, 177, 200);</string>
       <string>COMPLICATIONS</string>
      </property>
     </widget>
-    <widget class="QLabel" name="EC_middleName_label_17">
+    <widget class="QLabel" name="complications_placeholder">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -321,7 +321,7 @@ border: 1px solid rgb(210, 177, 200);</string>
      </property>
     </widget>
    </widget>
-   <widget class="QFrame" name="frame_7">
+   <widget class="QFrame" name="episiotomy_frame">
     <property name="geometry">
      <rect>
       <x>40</x>
@@ -341,7 +341,7 @@ border: 1px solid rgb(210, 177, 200);</string>
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="EC_middleName_label_10">
+    <widget class="QLabel" name="episiotomy_label">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -357,7 +357,7 @@ border: 1px solid rgb(210, 177, 200);</string>
       <string>EPISIOTOMY</string>
      </property>
     </widget>
-    <widget class="QLabel" name="EC_middleName_label_18">
+    <widget class="QLabel" name="episiotomy_placeholder">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -374,7 +374,7 @@ border: 1px solid rgb(210, 177, 200);</string>
      </property>
     </widget>
    </widget>
-   <widget class="QFrame" name="frame_8">
+   <widget class="QFrame" name="presentation_frame">
     <property name="geometry">
      <rect>
       <x>40</x>
@@ -394,7 +394,7 @@ border: 1px solid rgb(210, 177, 200);</string>
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="EC_middleName_label_12">
+    <widget class="QLabel" name="presentation_label">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -410,7 +410,7 @@ border: 1px solid rgb(210, 177, 200);</string>
       <string>PRESENTATION</string>
      </property>
     </widget>
-    <widget class="QLabel" name="EC_middleName_label_16">
+    <widget class="QLabel" name="presentation_placeholder">
      <property name="geometry">
       <rect>
        <x>10</x>

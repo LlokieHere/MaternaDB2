@@ -459,27 +459,6 @@ border: 1px solid rgb(26, 26, 62);</string>
      <string>Outcome</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="relationship_placeholder_4">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>380</y>
-      <width>151</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">border-radius: 12px;
-background-color: rgb(240, 230, 240);
-border: 1px solid rgb(26, 26, 62);</string>
-    </property>
-    <property name="text">
-     <string>e.g., Full term</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
    <widget class="QDateEdit" name="dateOfBirth_placeholder">
     <property name="geometry">
      <rect>
@@ -515,6 +494,36 @@ QDateEdit::down-arrow {
     <property name="calendarPopup">
      <bool>true</bool>
     </property>
+   </widget>
+   <widget class="QComboBox" name="comboBox">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>380</y>
+      <width>151</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Full Term</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Preterm</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Miscarriage</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Abortion</string>
+     </property>
+    </item>
    </widget>
   </widget>
  </widget>

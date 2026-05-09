@@ -106,7 +106,71 @@ class pastPregnancyScreen(QMainWindow):
             QMessageBox.critical(self, "Error", f"Failed to load profile:\n{e}")
 
     def load_past_pregnancy_data(self):
-        pass
+        conn = get_connection()
+        if not conn:
+            QMessageBox.critical(self, "DB Error", "Cannot connect to database")
+            return
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT history_id,
+                       gravida,
+                       para,
+                       abortion,
+                       living_children,
+                       last_delivery_date,
+                       delivery_type,
+                       baby_weight,
+                       outcome
+                FROM past_pregnancy
+                WHERE patient_id = %s
+                ORDER BY last_delivery_date DESC
+            """, (self.patient_id,))
+
+            rows = cursor.fetchall()
+            cursor.close()
+            conn.close()
+
+            # ── GPAL labels ──────────────────────────────
+            if rows:
+                # take from the latest row
+                latest = rows[0]
+                self.ui.gravida_placeholer.setText(str(latest[1]))
+                self.ui.para_placeholder.setText(str(latest[2]))
+                self.ui.abortion_placeholder.setText(str(latest[3]))
+                self.ui.living_children_placeholder.setText(str(latest[4]))
+            else:
+                self.ui.gravida_placeholer.setText("0")
+                self.ui.para_placeholder.setText("0")
+                self.ui.abortion_placeholder.setText("0")
+                self.ui.living_children_placeholder.setText("0")
+
+            # ── Table rows ───────────────────────────────
+            self.ui.patient_table.setRowCount(0)  # 🔁 replace tableWidget with your actual name
+
+            for row_data in rows:
+                history_id = row_data[0]
+                delivery_date = row_data[5].strftime("%B %d, %Y") if row_data[5] else ""
+                delivery_type = row_data[6] or ""
+                baby_weight = f"{row_data[7]} g" if row_data[7] else ""
+                outcome = row_data[8] or ""
+
+                row_index = self.ui.patient_table.rowCount()
+                self.ui.patient_table.insertRow(row_index)
+
+                self.ui.patient_table.setItem(row_index, 0, QTableWidgetItem(delivery_date))
+                self.ui.patient_table.setItem(row_index, 1, QTableWidgetItem(outcome))
+                self.ui.patient_table.setItem(row_index, 2, QTableWidgetItem(delivery_type))
+                self.ui.patient_table.setItem(row_index, 3, QTableWidgetItem(baby_weight))
+
+                # ── Action button (placeholder) ──────────
+                view_btn = QPushButton("View")
+                view_btn.setEnabled(False)  # not yet implemented
+                self.ui.patient_table.setCellWidget(row_index, 4, view_btn)
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to load past pregnancies:\n{e}")
 
     #outer navigation
     def go_to_patient_records(self):

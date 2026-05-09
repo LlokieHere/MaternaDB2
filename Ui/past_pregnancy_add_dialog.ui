@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>391</width>
-    <height>539</height>
+    <height>390</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <x>0</x>
      <y>0</y>
      <width>401</width>
-     <height>531</height>
+     <height>391</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -56,197 +56,22 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QLabel" name="street_label">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>60</y>
-      <width>91</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-    </property>
-    <property name="text">
-     <string>Gravida</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="barangay_label">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>60</y>
-      <width>91</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-    </property>
-    <property name="text">
-     <string>Para</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="province_label">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>120</y>
-      <width>91</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-    </property>
-    <property name="text">
-     <string>Living Children</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="city_label">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>120</y>
-      <width>141</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-    </property>
-    <property name="text">
-     <string>Abortion</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="street_placeholder">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>80</y>
-      <width>151</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">border-radius: 12px;
-background-color: rgb(240, 230, 240);
-border: 1px solid rgb(26, 26, 62);</string>
-    </property>
-    <property name="text">
-     <string>e.g., 1</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="province_placeholder">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>140</y>
-      <width>151</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">border-radius: 12px;
-background-color: rgb(240, 230, 240);
-border: 1px solid rgb(26, 26, 62);</string>
-    </property>
-    <property name="text">
-     <string>e.g.1</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="barangay_placeholder">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>80</y>
-      <width>151</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">border-radius: 12px;
-background-color: rgb(240, 230, 240);
-border: 1px solid rgb(26, 26, 62);</string>
-    </property>
-    <property name="text">
-     <string>e.g., 1</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="city_placeholder">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>140</y>
-      <width>151</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">border-radius: 12px;
-background-color: rgb(240, 230, 240);
-border: 1px solid rgb(26, 26, 62);</string>
-    </property>
-    <property name="text">
-     <string>e.g., 1</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>100</x>
-      <y>450</y>
+      <y>340</y>
       <width>191</width>
       <height>28</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QPushButton" name="cancel_btn_2">
-       <property name="styleSheet">
-        <string notr="true">border-radius: 12px;
-padding: 4px;
-background-color: rgb(240, 230, 240);
-border: 1px solid rgb(26, 26, 62);</string>
-       </property>
-       <property name="text">
-        <string>Cancel</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="save_btn_2">
-       <property name="styleSheet">
-        <string notr="true">border-radius: 12px;
-padding: 4px;
-background-color: rgb(240, 230, 240);
-border: 1px solid rgb(26, 26, 62);</string>
-       </property>
-       <property name="text">
-        <string>Save</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <layout class="QHBoxLayout" name="horizontalLayout_2"/>
    </widget>
-   <widget class="QLabel" name="dateOfBirth_4">
+   <widget class="QLabel" name="episiotomy_label">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>240</y>
+      <x>199</x>
+      <y>129</y>
       <width>91</width>
       <height>16</height>
      </rect>
@@ -258,11 +83,11 @@ border: 1px solid rgb(26, 26, 62);</string>
      <string>Episiotomy</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="relationship_placeholder_2">
+   <widget class="QLineEdit" name="complication_placeholder">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>320</y>
+      <x>39</x>
+      <y>209</y>
       <width>151</width>
       <height>31</height>
      </rect>
@@ -279,11 +104,11 @@ border: 1px solid rgb(26, 26, 62);</string>
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QLineEdit" name="EC_last_name_placeholder_2">
+   <widget class="QLineEdit" name="delivery_date_placeholder">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>200</y>
+      <x>199</x>
+      <y>89</y>
       <width>151</width>
       <height>31</height>
      </rect>
@@ -300,11 +125,11 @@ border: 1px solid rgb(26, 26, 62);</string>
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QLabel" name="EC_firstName_label_2">
+   <widget class="QLabel" name="delivery_date_label">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>180</y>
+      <x>39</x>
+      <y>69</y>
       <width>91</width>
       <height>16</height>
      </rect>
@@ -316,11 +141,11 @@ border: 1px solid rgb(26, 26, 62);</string>
      <string>Delivery Date</string>
     </property>
    </widget>
-   <widget class="QLabel" name="EC_middleName_label_2">
+   <widget class="QLabel" name="presentation_label">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>240</y>
+      <x>39</x>
+      <y>129</y>
       <width>141</width>
       <height>16</height>
      </rect>
@@ -332,11 +157,11 @@ border: 1px solid rgb(26, 26, 62);</string>
      <string>Presentation</string>
     </property>
    </widget>
-   <widget class="QLabel" name="relationship_label_2">
+   <widget class="QLabel" name="complication_label">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>300</y>
+      <x>39</x>
+      <y>189</y>
       <width>91</width>
       <height>16</height>
      </rect>
@@ -348,11 +173,11 @@ border: 1px solid rgb(26, 26, 62);</string>
      <string>Complication</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="EC_middleName_placeholder_2">
+   <widget class="QLineEdit" name="presentation_placeholder">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>260</y>
+      <x>39</x>
+      <y>149</y>
       <width>151</width>
       <height>31</height>
      </rect>
@@ -369,32 +194,11 @@ border: 1px solid rgb(26, 26, 62);</string>
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QLineEdit" name="emergencyNum_placeholder_2">
+   <widget class="QLabel" name="delivery_type_label">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>260</y>
-      <width>151</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">border-radius: 12px;
-background-color: rgb(240, 230, 240);
-border: 1px solid rgb(26, 26, 62);</string>
-    </property>
-    <property name="text">
-     <string>e.g., 091234567890</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="EC_lastName_label_2">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>180</y>
+      <x>199</x>
+      <y>69</y>
       <width>101</width>
       <height>16</height>
      </rect>
@@ -406,11 +210,11 @@ border: 1px solid rgb(26, 26, 62);</string>
      <string>Delivery Type</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="relationship_placeholder_3">
+   <widget class="QLineEdit" name="baby_weight_placeholder">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>320</y>
+      <x>199</x>
+      <y>209</y>
       <width>151</width>
       <height>31</height>
      </rect>
@@ -427,11 +231,11 @@ border: 1px solid rgb(26, 26, 62);</string>
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QLabel" name="relationship_label_3">
+   <widget class="QLabel" name="baby_weight_label">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>300</y>
+      <x>199</x>
+      <y>189</y>
       <width>91</width>
       <height>16</height>
      </rect>
@@ -443,11 +247,11 @@ border: 1px solid rgb(26, 26, 62);</string>
      <string>Baby Weight</string>
     </property>
    </widget>
-   <widget class="QLabel" name="relationship_label_4">
+   <widget class="QLabel" name="outcome_label">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>360</y>
+      <x>39</x>
+      <y>249</y>
       <width>91</width>
       <height>16</height>
      </rect>
@@ -459,11 +263,11 @@ border: 1px solid rgb(26, 26, 62);</string>
      <string>Outcome</string>
     </property>
    </widget>
-   <widget class="QDateEdit" name="dateOfBirth_placeholder">
+   <widget class="QDateEdit" name="delivery_dat_placeholder">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>200</y>
+      <x>39</x>
+      <y>89</y>
       <width>151</width>
       <height>31</height>
      </rect>
@@ -498,8 +302,8 @@ QDateEdit::down-arrow {
    <widget class="QComboBox" name="comboBox">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>380</y>
+      <x>39</x>
+      <y>269</y>
       <width>151</width>
       <height>31</height>
      </rect>
@@ -522,6 +326,64 @@ QDateEdit::down-arrow {
     <item>
      <property name="text">
       <string>Abortion</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QPushButton" name="cancel_btn_2">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>340</y>
+      <width>92</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-radius: 12px;
+padding: 4px;
+background-color: rgb(240, 230, 240);
+border: 1px solid rgb(26, 26, 62);</string>
+    </property>
+    <property name="text">
+     <string>Cancel</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="save_btn_2">
+    <property name="geometry">
+     <rect>
+      <x>198</x>
+      <y>340</y>
+      <width>91</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-radius: 12px;
+padding: 4px;
+background-color: rgb(240, 230, 240);
+border: 1px solid rgb(26, 26, 62);</string>
+    </property>
+    <property name="text">
+     <string>Save</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="Episiotomy_placeholder">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>150</y>
+      <width>151</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Yes</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>No</string>
      </property>
     </item>
    </widget>

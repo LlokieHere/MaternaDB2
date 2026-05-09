@@ -365,7 +365,7 @@ border-radius: 15px;</string>
        <string>Next</string>
       </property>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>171</x>

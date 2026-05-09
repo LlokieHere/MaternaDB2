@@ -56,13 +56,45 @@ class PatientProfileScreen(QMainWindow):
                        first_name,
                        middle_name,
                        last_name,
+                       date_registered,
+                       blood_type,
                        date_of_birth,
-                       contact_number
+                       philhealth_no,
+                       civil_status,
+                       religion,
+                       nationality,
+                       occupation,
+                       contact_number   
                 FROM patient_profile
                 WHERE patient_id = %s
             """, (self.patient_id,))
 
             data = cursor.fetchone()
+
+            cursor.execute("""
+                SELECT street,
+                       barangay,
+                       city,
+                       province
+                FROM patient_address
+                WHERE patient_id = %s
+            """, (self.patient_id,))
+
+            address = cursor.fetchone()
+            address = address or ("", "", "", "")
+
+            cursor.execute("""
+                SELECT contact_first_name,
+                       contact_middle_name,
+                       contact_last_name,
+                       contact_number,
+                       relationship
+                FROM emergency_contact
+                WHERE patient_id = %s
+            """, (self.patient_id,))
+
+            emergency = cursor.fetchone()
+            emergency = emergency or ("", "", "", "", "")
 
             if not data:
                 QMessageBox.warning(self, "Not Found", "Patient not found")
@@ -72,40 +104,64 @@ class PatientProfileScreen(QMainWindow):
             full_name = " ".join(filter(None, [data[1], data[2], data[3]]))
 
             # ✅ Safe date formatting
-            dob = data[4].strftime("%B %d, %Y") if data[4] else ""
+            register = data[4].strftime("%B %d, %Y") if data[4] else ""
 
             # =====================================================
             # 🎯 SET UI VALUES
             # =====================================================
+            self.ui.placeholder_p_bloodType.setText(data[5])
             self.ui.patient_name.setText(full_name)
             self.ui.placeholder_p_ID.setText(str(data[0]))
-            self.ui.bday_placeholder.setText(dob)
-            self.ui.contact_number_placeholder.setText(str(data[5]))
+            self.ui.placeholder_register_date_2.setText(register)
+            self.ui.placeholder_philhealth_num.setText(str(data[7]))
 
             # calculate age
             query = """
-            SELECT EXTRACT(YEAR FROM AGE(date_of_birth)) AS age
-            FROM patient_profile
-            WHERE patient_id = %s;
-            """
+                        SELECT EXTRACT(YEAR FROM AGE(date_of_birth)) AS age
+                        FROM patient_profile
+                        WHERE patient_id = %s;
+                        """
 
             cursor.execute(query, (self.patient_id,))
             result = cursor.fetchone()
-            cursor.close()
 
             if result:
                 age = result[0]  # extract value from tuple
                 self.ui.age_placeholder.setText(str(age))
             else:
                 self.ui.age_placeholder.setText("N/A")
-            conn.close()
+
+            bod = data[6].strftime("%B %d, %Y") if data[6] else ""
 
             self.ui.first_name_placeholder.setText(data[1])
             self.ui.middle_name_placeholder.setText(data[2] or "")
             self.ui.last_name_placeholder.setText(data[3])
+            self.ui.bday_placeholder.setText(bod)
+            self.ui.civil_status_placeholder.setText(data[8])
+            self.ui.religion_placeholder.setText(data[9])
+            self.ui.nationality_placeholder.setText(data[10])
+            self.ui.occupation_placeholder.setText(data[11])
+            self.ui.contact_number_placeholder.setText(data[12])
+
+            self.ui.street_placeholder.setText(address[0] or "")
+            self.ui.barangay_placeholder.setText(address[1] or "")
+            self.ui.cit_placeholder.setText(address[2] or "")
+            self.ui.province_placeholder.setText(address[3] or "")
+
+            # ✅ CORRECT
+            self.ui.EC_first_name_placeholder.setText(emergency[0] or "")
+            self.ui.EC_middle_name_placeholder.setText(emergency[1] or "")
+            self.ui.EC_last_name_placeholder.setText(emergency[2] or "")
+            self.ui.EC_contact_placeholder.setText(emergency[3] or "")
+            self.ui.EC_relationship_placeholder.setText(emergency[4]or "")
+
+            cursor.close()
+            conn.close()
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load profile:\n{e}")
+
+
 
     def open_edit_dialog(self):
         conn = get_connection()

@@ -1,35 +1,26 @@
 from PyQt6.QtWidgets import (
-    QMainWindow, QMessageBox, QTableWidgetItem, QPushButton, QDialog
+    QMainWindow, QMessageBox, QTableWidgetItem, QPushButton
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QHeaderView
-from screens.family_planning_ui import Ui_MainWindow
+from screens.appointment_patient_record_ui import Ui_MainWindow
 from database import get_connection
 
 
-class FamilyPlanningScreen(QMainWindow):
+class PatientAppointmentScreen(QMainWindow):
     def __init__(self, patient_id, parent=None):
         super().__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.patient_id = patient_id
-        self.current_planning_id = None
-        self.setWindowTitle("Family Planning")
+        self.setWindowTitle("Appointment History")
 
-        # Hide unused fields
-        self.ui.prescribed_by_value.setVisible(False)
-        self.ui.next_followup_value.setVisible(False)
-        self.ui.label_9.setVisible(False)
-        self.ui.label_10.setVisible(False)
-
+        self.clear_details()
         self.setup_navigation()
         self.load_patient_data()
-        self.load_family_planning()
+        self.load_appointments()
 
-        self.ui.add_plan_btn.clicked.connect(self.open_add_dialog)
-        self.ui.edit_plan_btn.clicked.connect(self.open_edit_dialog)
-        self.ui.discontinue_btn.clicked.connect(self.discontinue_plan)
-        self.ui.family_planning_table.cellClicked.connect(self.on_row_selected)
+        self.ui.appointments_table.cellClicked.connect(self.on_row_clicked)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -67,26 +58,32 @@ class FamilyPlanningScreen(QMainWindow):
         tab_y = 80 + header_h + 20
         self.ui.layoutWidget1.setGeometry(pad, tab_y, inner_w, 40)
 
-        btn_y = tab_y + 50
-        self.ui.add_plan_btn.setGeometry(inner_w - 120, btn_y, 120, 31)
+        section_label_y = tab_y + 50
+        self.ui.label_12.setGeometry(pad, section_label_y, inner_w // 2, 40)
 
-        panels_y = btn_y + 41
+        panels_y = section_label_y + 50
         panels_h = content_h - panels_y - pad
-        left_w = int(inner_w * 0.45)
+        left_w  = int(inner_w * 0.44)
         right_w = inner_w - left_w - 20
 
         self.ui.left.setGeometry(pad, panels_y, left_w, panels_h)
-        self.ui.family_planning_table.setGeometry(0, 0, left_w, panels_h)
-        self.ui.family_planning_table.horizontalHeader().setSectionResizeMode(
+        self.ui.appointments_table.setGeometry(0, 0, left_w, panels_h)
+        self.ui.appointments_table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Stretch)
 
         self.ui.right_details.setGeometry(pad + left_w + 20, panels_y, right_w, panels_h)
         self.ui.label_4.setGeometry(15, 10, right_w - 20, 21)
-        self.ui.formWidget.setGeometry(15, 40, right_w - 20, 251)
-        self.ui.side_effects_label.setGeometry(15, 300, right_w - 20, 18)
-        self.ui.side_effects_value.setGeometry(15, 320, right_w - 20, 50)
-        self.ui.discontinue_btn.setGeometry(right_w - 260, panels_h - 50, 120, 31)
-        self.ui.edit_plan_btn.setGeometry(right_w - 130, panels_h - 50, 120, 31)
+        self.ui.formWidget.setGeometry(15, 40, right_w - 20, 220)
+        self.ui.purpose_label.setGeometry(15, 270, right_w - 20, 18)
+        self.ui.purpose_value.setGeometry(15, 292, right_w - 20, 60)
+
+    def clear_details(self):
+        self.ui.date_value.setText("")
+        self.ui.time_value.setText("")
+        self.ui.type_value.setText("")
+        self.ui.doctor_value.setText("")
+        self.ui.duration_value.setText("")
+        self.ui.purpose_value.setText("")
 
     def setup_navigation(self):
         try:
@@ -95,12 +92,13 @@ class FamilyPlanningScreen(QMainWindow):
             self.ui.pushButton_3.clicked.connect(self.go_to_prenatal_care)
             self.ui.pushButton_4.clicked.connect(self.go_to_appointments)
             self.ui.pushButton_5.clicked.connect(self.logout)
+
             self.ui.pushButton_6.clicked.connect(self.go_to_patient_profile)
             self.ui.pushButton_7.clicked.connect(self.go_to_past_pregnancy)
             self.ui.pushButton_8.clicked.connect(self.go_to_prescription)
             self.ui.pushButton_9.clicked.connect(self.go_to_medical_history)
             self.ui.pushButton_10.clicked.connect(self.go_to_family_planning)
-            self.ui.pushButton_11.clicked.connect(self.go_to_appointments_tab)
+            self.ui.pushButton_11.clicked.connect(self.go_to_appointment_tab)
         except Exception as e:
             print("Navigation error:", e)
 
@@ -112,11 +110,16 @@ class FamilyPlanningScreen(QMainWindow):
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT patient_id, first_name, middle_name, last_name,
-                       date_registered, blood_type, philhealth_no,
-                       EXTRACT(YEAR FROM AGE(date_of_birth)) AS age
+                       date_registered, blood_type, philhealth_no
                 FROM patient_profile WHERE patient_id = %s
             """, (self.patient_id,))
             data = cursor.fetchone()
+
+            cursor.execute("""
+                SELECT EXTRACT(YEAR FROM AGE(date_of_birth))
+                FROM patient_profile WHERE patient_id = %s
+            """, (self.patient_id,))
+            age_result = cursor.fetchone()
             cursor.close()
             conn.close()
 
@@ -131,157 +134,124 @@ class FamilyPlanningScreen(QMainWindow):
             self.ui.placeholder_register_date.setText(register)
             self.ui.placeholder_p_bloodType.setText(data[5] or "")
             self.ui.placeholder_philhealth_num.setText(str(data[6]))
-            self.ui.placeholder_age.setText(str(int(data[7])) if data[7] else "N/A")
+            self.ui.placeholder_age.setText(
+                str(int(age_result[0])) if age_result else "N/A")
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load patient:\n{e}")
 
-    def clear_right_panel(self):
-        self.ui.method_value.setText("")
-        self.ui.start_date_value.setText("")
-        self.ui.end_date_value.setText("")
-        self.ui.status_value.setText("")
-        self.ui.side_effects_value.setText("")
-
-    def load_family_planning(self):
+    def load_appointments(self):
         conn = get_connection()
         if not conn:
             return
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT planning_id, method, status
-                FROM family_planning
-                WHERE patient_id = %s
-                ORDER BY start_date DESC
+                SELECT a.appointment_id,
+                       a.appointment_date,
+                       a.appointment_time,
+                       a.appointment_type,
+                       s.first_name || ' ' || s.last_name AS staff_name,
+                       a.remarks
+                FROM appointment a
+                JOIN staff s ON a.staff_id = s.staff_id
+                WHERE a.patient_id = %s
+                  AND a.status = 'Completed'
+                ORDER BY a.appointment_date DESC, a.appointment_time DESC
             """, (self.patient_id,))
             rows = cursor.fetchall()
             cursor.close()
             conn.close()
 
-            tbl = self.ui.family_planning_table
+            tbl = self.ui.appointments_table
             tbl.setRowCount(0)
             tbl.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
             tbl.horizontalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
 
             for row_data in rows:
-                planning_id = row_data[0]
-                method      = row_data[1] or ""
-                status      = row_data[2] or ""
+                appointment_id = row_data[0]
+                date           = row_data[1].strftime("%B %d, %Y") if row_data[1] else ""
+                time           = str(row_data[2])[:5] if row_data[2] else ""
+                appt_type      = row_data[3] or ""
 
                 row_index = tbl.rowCount()
                 tbl.insertRow(row_index)
 
-                method_item = QTableWidgetItem(method)
-                method_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                method_item.setData(Qt.ItemDataRole.UserRole, planning_id)
-                tbl.setItem(row_index, 0, method_item)
+                # Store appointment_id in the date item for later retrieval
+                date_item = QTableWidgetItem(date)
+                date_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                date_item.setData(Qt.ItemDataRole.UserRole, appointment_id)
+                tbl.setItem(row_index, 0, date_item)
 
-                status_item = QTableWidgetItem(status)
-                status_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                tbl.setItem(row_index, 1, status_item)
-
-                def make_handler(pid):
-                    def handler():
-                        self.load_plan_details(pid)
-                    return handler
+                for col, val in enumerate([time, appt_type], start=1):
+                    item = QTableWidgetItem(val)
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    tbl.setItem(row_index, col, item)
 
                 view_btn = QPushButton("View")
-                view_btn.clicked.connect(make_handler(planning_id))
-                tbl.setCellWidget(row_index, 2, view_btn)
-
-            # Always start with a blank right panel
-            self.clear_right_panel()
+                view_btn.setStyleSheet(
+                    "background-color: rgb(106,27,154); color: white;"
+                    "border-radius: 8px; padding: 4px 10px; font-weight: bold;"
+                )
+                def make_handler(aid):
+                    def handler():
+                        self.load_details(aid)
+                    return handler
+                view_btn.clicked.connect(make_handler(appointment_id))
+                tbl.setCellWidget(row_index, 3, view_btn)
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load family planning:\n{e}")
+            QMessageBox.critical(self, "Error", f"Failed to load appointments:\n{e}")
 
-    def on_row_selected(self, row, col):
-        item = self.ui.family_planning_table.item(row, 0)
+    def on_row_clicked(self, row, col):
+        item = self.ui.appointments_table.item(row, 0)
         if item:
-            planning_id = item.data(Qt.ItemDataRole.UserRole)
-            self.load_plan_details(planning_id)
+            appointment_id = item.data(Qt.ItemDataRole.UserRole)
+            self.load_details(appointment_id)
 
-    def load_plan_details(self, planning_id):
-        self.current_planning_id = planning_id
+    def load_details(self, appointment_id):
         conn = get_connection()
         if not conn:
             return
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT method, start_date, end_date, status, remarks
-                FROM family_planning
-                WHERE planning_id = %s
-            """, (planning_id,))
+                SELECT a.appointment_date,
+                       a.appointment_time,
+                       a.appointment_type,
+                       s.first_name || ' ' || s.last_name,
+                       a.remarks
+                FROM appointment a
+                JOIN staff s ON a.staff_id = s.staff_id
+                WHERE a.appointment_id = %s
+            """, (appointment_id,))
             data = cursor.fetchone()
+
+            cursor.execute("""
+                SELECT purpose FROM appointment_purpose
+                WHERE appointment_id = %s
+            """, (appointment_id,))
+            purposes = [row[0] for row in cursor.fetchall()]
             cursor.close()
             conn.close()
 
             if not data:
                 return
 
-            self.ui.method_value.setText(data[0] or "")
-            self.ui.start_date_value.setText(
-                data[1].strftime("%B %d, %Y") if data[1] else "")
-            self.ui.end_date_value.setText(
-                data[2].strftime("%B %d, %Y") if data[2] else "Ongoing")
-            self.ui.status_value.setText(data[3] or "")
-            self.ui.side_effects_value.setText(data[4] or "")
+            date    = data[0].strftime("%B %d, %Y") if data[0] else ""
+            time    = str(data[1])[:5] if data[1] else ""
+            remarks = data[4] or ""
+
+            self.ui.date_value.setText(date)
+            self.ui.time_value.setText(time)
+            self.ui.type_value.setText(data[2] or "")
+            self.ui.doctor_value.setText(data[3] or "")
+            self.ui.duration_value.setText(remarks)
+            self.ui.purpose_value.setText(
+                ", ".join(purposes) if purposes else "—")
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load plan details:\n{e}")
-
-    def open_add_dialog(self):
-        from Dialog.add_family_planning_dialog import AddFamilyPlanningDialog
-        dialog = AddFamilyPlanningDialog(self.patient_id, parent=self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.load_family_planning()
-
-    def open_edit_dialog(self):
-        if not self.current_planning_id:
-            QMessageBox.warning(self, "No Selection", "Please select a plan to edit.")
-            return
-        from Dialog.add_family_planning_dialog import AddFamilyPlanningDialog
-        dialog = AddFamilyPlanningDialog(
-            self.patient_id,
-            planning_id=self.current_planning_id,
-            parent=self
-        )
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.load_family_planning()
-            self.load_plan_details(self.current_planning_id)
-
-    def discontinue_plan(self):
-        if not self.current_planning_id:
-            QMessageBox.warning(self, "No Selection", "Please select a plan to discontinue.")
-            return
-
-        confirm = QMessageBox.question(
-            self, "Discontinue Plan",
-            "Are you sure you want to mark this plan as Resolved?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-        )
-        if confirm != QMessageBox.StandardButton.Yes:
-            return
-
-        conn = get_connection()
-        if not conn:
-            return
-        try:
-            cursor = conn.cursor()
-            cursor.execute("""
-                UPDATE family_planning SET status = 'Resolved'
-                WHERE planning_id = %s
-            """, (self.current_planning_id,))
-            conn.commit()
-            cursor.close()
-            conn.close()
-            QMessageBox.information(self, "Success", "Plan marked as Resolved.")
-            self.load_family_planning()
-            self.load_plan_details(self.current_planning_id)
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to discontinue:\n{e}")
+            QMessageBox.critical(self, "Error", f"Failed to load details:\n{e}")
 
     # ── Outer navigation ──────────────────────────────────────
     def go_to_dashboard(self):
@@ -340,10 +310,10 @@ class FamilyPlanningScreen(QMainWindow):
         self.close()
 
     def go_to_family_planning(self):
-        pass
-
-    def go_to_appointment(self):
-        from screens.appointment_patient_record_screen import PatientAppointmentScreen
-        self.new_window = PatientAppointmentScreen(self.patient_id)
+        from screens.family_planning_screen import FamilyPlanningScreen
+        self.new_window = FamilyPlanningScreen(self.patient_id)
         self.new_window.showMaximized()
         self.close()
+
+    def go_to_appointment_tab(self):
+        pass  # already here

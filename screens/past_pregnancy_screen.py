@@ -377,8 +377,11 @@ class pastPregnancyScreen(QMainWindow):
         self.new_window.showMaximized()
         self.close()
 
-    def go_to_pastPregnancy(self):
-        pass
+    def go_to_appointments(self):
+        from screens.appointments_screen import AppointmentsScreen
+        self.new_window = AppointmentsScreen()
+        self.new_window.showMaximized()
+        self.close()
 
     # ✅ Correct
     def go_to_prescription(self):
@@ -399,5 +402,8 @@ class pastPregnancyScreen(QMainWindow):
         self.new_window.showMaximized()
         self.close()
 
-    def go_to_appointment_tab(self):
-        print("Appointments tab not connected yet")
+    def go_to_appointment(self):
+        from screens.appointment_patient_record_screen import PatientAppointmentScreen
+        self.new_window = PatientAppointmentScreen(self.patient_id)
+        self.new_window.showMaximized()
+        self.close()

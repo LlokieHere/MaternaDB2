@@ -163,7 +163,7 @@ class DashboardScreen(QMainWindow):
             cursor.execute("SELECT COUNT(*) FROM patient_profile")
             self.ui.total_patient_label_2.setText(str(cursor.fetchone()[0]))
 
-            cursor.execute("SELECT COUNT(*) FROM appointment")
+            cursor.execute("SELECT COUNT(*) FROM appointment WHERE ")
             self.ui.total_patient_label_3.setText(str(cursor.fetchone()[0]))
 
             cursor.execute("SELECT COUNT(*) FROM patient_profile WHERE patient_type = 'Maternal'")

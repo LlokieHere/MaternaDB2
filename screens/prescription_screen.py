@@ -290,7 +290,10 @@ class PrescriptionScreen(QMainWindow):
         self.close()
 
     def go_to_appointments(self):
-        print("Appointments not connected yet")
+        from screens.appointments_screen import AppointmentsScreen
+        self.new_window = AppointmentsScreen()
+        self.new_window.showMaximized()
+        self.close()
 
     def logout(self):
         from screens.login_screen import LoginScreen
@@ -326,5 +329,8 @@ class PrescriptionScreen(QMainWindow):
         self.new_window.showMaximized()
         self.close()
 
-    def go_to_appointments_tab(self):
-        print("Appointments tab not connected yet")
+    def go_to_appointment(self):
+        from screens.appointment_patient_record_screen import PatientAppointmentScreen
+        self.new_window = PatientAppointmentScreen(self.patient_id)
+        self.new_window.showMaximized()
+        self.close()

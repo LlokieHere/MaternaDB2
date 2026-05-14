@@ -99,25 +99,24 @@ class pastPregnancyScreen(QMainWindow):
         table_h = content_h - table_y - pad
         self.ui.patient_table.setGeometry(pad, table_y, inner_w, table_h)
 
-
     def setup_navigation(self):
         try:
-            # Navigation
+            # Outer navigation
             self.ui.pushButton.clicked.connect(self.go_to_dashboard)
             self.ui.pushButton_2.clicked.connect(self.go_to_patient_records)
             self.ui.pushButton_3.clicked.connect(self.go_to_prenatal_care)
             self.ui.pushButton_4.clicked.connect(self.go_to_appointments)
             self.ui.pushButton_5.clicked.connect(self.logout)
 
-            # Inner Navigation
-            self.ui.pushButton_7.clicked.connect(self.go_to_pastPregnancy)
+            # Inner navigation tabs
+            self.ui.pushButton_6.clicked.connect(self.go_to_patient_profile)  # Patient Profile tab
+            self.ui.pushButton_7.clicked.connect(self.go_to_pastPregnancy)  # Past Pregnancy tab (current)
             self.ui.pushButton_8.clicked.connect(self.go_to_prescription)
             self.ui.pushButton_9.clicked.connect(self.go_to_medicalHistory)
             self.ui.pushButton_10.clicked.connect(self.go_to_family_planning)
-            self.ui.pushButton_11.clicked.connect(self.go_to_appointment_tab)
+            self.ui.pushButton_11.clicked.connect(self.go_to_appointment_tab)  # if you have this button
 
             self.ui.remove_btn.clicked.connect(self.remove_pregnancy)
-
 
         except Exception as e:
             print("Navigation Error:", e)  # prevents crash if button name is different
@@ -342,7 +341,15 @@ class pastPregnancyScreen(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to remove record:\n{e}")
 
-    #outer navigation
+    # =====================================================
+    # OUTER NAVIGATION
+    # =====================================================
+    def go_to_dashboard(self):
+        from screens.dashboard_screen import DashboardScreen
+        self.new_window = DashboardScreen()
+        self.new_window.showMaximized()
+        self.close()
+
     def go_to_patient_records(self):
         from screens.patient_records_screen import PatientRecordScreen
         self.new_window = PatientRecordScreen()
@@ -355,14 +362,11 @@ class pastPregnancyScreen(QMainWindow):
         self.new_window.showMaximized()
         self.close()
 
-    def go_to_dashboard(self):  # FIXED NAME (important)
-        from screens.dashboard_screen import DashboardScreen
-        self.new_window = DashboardScreen()
+    def go_to_appointments(self):
+        from screens.appointments_screen import AppointmentsScreen
+        self.new_window = AppointmentsScreen()
         self.new_window.showMaximized()
         self.close()
-
-    def go_to_appointments(self):
-        print("Appointments screen not connected yet")
 
     def logout(self):
         from screens.login_screen import LoginScreen
@@ -370,22 +374,20 @@ class pastPregnancyScreen(QMainWindow):
         self.new_window.showMaximized()
         self.close()
 
-    #inner navigation
+    # =====================================================
+    # INNER NAVIGATION (tabs)
+    # =====================================================
     def go_to_patient_profile(self):
         from screens.patient_profile_screen import PatientProfileScreen
         self.new_window = PatientProfileScreen(self.patient_id)
         self.new_window.showMaximized()
         self.close()
 
-    def go_to_appointments(self):
-        from screens.appointments_screen import AppointmentsScreen
-        self.new_window = AppointmentsScreen()
-        self.new_window.showMaximized()
-        self.close()
+    def go_to_pastPregnancy(self):
+        pass  # already on this screen
 
-    # ✅ Correct
     def go_to_prescription(self):
-        from screens.prescription_screen import PrescriptionScreen  # ✅ add "screens."
+        from screens.prescription_screen import PrescriptionScreen
         self.new_window = PrescriptionScreen(self.patient_id)
         self.new_window.showMaximized()
         self.close()
@@ -402,7 +404,7 @@ class pastPregnancyScreen(QMainWindow):
         self.new_window.showMaximized()
         self.close()
 
-    def go_to_appointment(self):
+    def go_to_appointment_tab(self):
         from screens.appointment_patient_record_screen import PatientAppointmentScreen
         self.new_window = PatientAppointmentScreen(self.patient_id)
         self.new_window.showMaximized()

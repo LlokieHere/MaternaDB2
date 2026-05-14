@@ -14,6 +14,7 @@ class CompletedAppointmentsScreen(QMainWindow):
         self.ui.setupUi(self)
         self.setWindowTitle("Completed Appointments")
         self.current_appointment_id = None
+        self.current_patient_id = None  # ✅ add this
 
         self._hide_details()
         self.setup_navigation()
@@ -113,7 +114,8 @@ class CompletedAppointmentsScreen(QMainWindow):
                        a.appointment_time,
                        a.appointment_type,
                        a.status,
-                       a.remarks
+                       a.remarks,
+                       a.patient_id                          -- ✅ grab patient_id
                 FROM appointment a
                 JOIN patient_profile pp ON a.patient_id = pp.patient_id
                 WHERE a.appointment_id = %s
@@ -140,6 +142,8 @@ class CompletedAppointmentsScreen(QMainWindow):
             self.ui.label_6.setText(f"<b>Time:</b> {time}")
             self.ui.textEdit.setPlainText(", ".join(purposes) if purposes else "")
             self.ui.textEdit_2.setPlainText(data[5] or "")
+
+            self.current_patient_id = data[6]  # ✅ store it
 
             self._show_details()
 
@@ -170,38 +174,12 @@ class CompletedAppointmentsScreen(QMainWindow):
             QMessageBox.warning(self, "No Selection",
                                 "Please select an appointment first.")
             return
-        conn = get_connection()
-        if not conn:
-            return
-        try:
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT pp.first_name || ' ' || pp.last_name,
-                       a.appointment_date, a.appointment_time,
-                       a.appointment_type, a.status, a.remarks
-                FROM appointment a
-                JOIN patient_profile pp ON a.patient_id = pp.patient_id
-                WHERE a.appointment_id = %s
-            """, (self.current_appointment_id,))
-            data = cursor.fetchone()
-            cursor.close()
-            conn.close()
 
-            if not data:
-                return
-
-            date = data[1].strftime("%B %d, %Y") if data[1] else ""
-            QMessageBox.information(
-                self, "Full Record",
-                f"Patient: {data[0]}\n"
-                f"Date: {date}\n"
-                f"Time: {str(data[2])[:5]}\n"
-                f"Type: {data[3]}\n"
-                f"Status: {data[4]}\n"
-                f"Remarks: {data[5] or ''}"
-            )
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed:\n{e}")
+        # ✅ Go directly to patient profile — no DB call needed, we already have the id
+        from screens.patient_profile_screen import PatientProfileScreen
+        self.new_window = PatientProfileScreen(self.current_patient_id)
+        self.new_window.showMaximized()
+        self.close()
 
     def go_back(self):
         from screens.appointments_screen import AppointmentsScreen

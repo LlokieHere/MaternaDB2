@@ -100,7 +100,7 @@ class FamilyPlanningScreen(QMainWindow):
             self.ui.pushButton_8.clicked.connect(self.go_to_prescription)
             self.ui.pushButton_9.clicked.connect(self.go_to_medical_history)
             self.ui.pushButton_10.clicked.connect(self.go_to_family_planning)
-            self.ui.pushButton_11.clicked.connect(self.go_to_appointments_tab)
+            self.ui.pushButton_11.clicked.connect(self.go_to_appointment)
         except Exception as e:
             print("Navigation error:", e)
 

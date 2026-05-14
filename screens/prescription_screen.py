@@ -24,7 +24,7 @@ class PrescriptionScreen(QMainWindow):
         self.ui.left_prescription_date_and_purpose.cellClicked.connect(
             self.on_prescription_selected)
 
-    # ── Responsive layout ─────────────────────────────────────
+    # ── Responsive layout ─────────────────────────────────────────────────────
     def resizeEvent(self, event):
         super().resizeEvent(event)
         w = self.width()
@@ -56,7 +56,7 @@ class PrescriptionScreen(QMainWindow):
         self.ui.frame_5.setGeometry(20, 20, 111, 91)
         self.ui.patient_name.setGeometry(170, 15, inner_w - 320, 30)
         self.ui.next_btn.setGeometry(inner_w - 140, 45, 120, 51)
-        self.ui.layoutWidget.setGeometry(170, 55, inner_w - 320, 75)
+        self.ui.layoutWidget.setGeometry(170, 50, inner_w - 320, 80)
 
         tab_y = 80 + header_h + 20
         self.ui.layoutWidget1.setGeometry(pad, tab_y, inner_w, 40)
@@ -84,7 +84,7 @@ class PrescriptionScreen(QMainWindow):
         self.ui.notes_label.setGeometry(10, panels_h - 45, 50, 18)
         self.ui.notes_placeholder.setGeometry(65, panels_h - 45, right_w - 75, 18)
 
-    # ── Navigation ────────────────────────────────────────────
+    # ── Navigation ────────────────────────────────────────────────────────────
     def setup_navigation(self):
         try:
             self.ui.pushButton.clicked.connect(self.go_to_dashboard)
@@ -101,25 +101,29 @@ class PrescriptionScreen(QMainWindow):
         except Exception as e:
             print("Navigation error:", e)
 
-    # ── Load patient header ───────────────────────────────────
+    # ── Load patient header (now includes age) ────────────────────────────────
     def load_patient_data(self):
         conn = get_connection()
         if not conn:
             return
         try:
             cursor = conn.cursor()
+
             cursor.execute("""
                 SELECT patient_id, first_name, middle_name, last_name,
                        date_registered, blood_type, philhealth_no
-                FROM patient_profile WHERE patient_id = %s
+                FROM patient_profile
+                WHERE patient_id = %s
             """, (self.patient_id,))
             data = cursor.fetchone()
 
             cursor.execute("""
                 SELECT EXTRACT(YEAR FROM AGE(date_of_birth))
-                FROM patient_profile WHERE patient_id = %s
+                FROM patient_profile
+                WHERE patient_id = %s
             """, (self.patient_id,))
             age_result = cursor.fetchone()
+
             cursor.close()
             conn.close()
 
@@ -135,10 +139,16 @@ class PrescriptionScreen(QMainWindow):
             self.ui.placeholder_p_bloodType.setText(data[5] or "")
             self.ui.placeholder_philhealth_num.setText(str(data[6]))
 
+            # ✅ Age
+            if age_result and age_result[0]:
+                self.ui.placeholder_age.setText(str(int(age_result[0])))
+            else:
+                self.ui.placeholder_age.setText("—")
+
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load patient:\n{e}")
 
-    # ── Load left table (grouped by date + staff) ─────────────
+    # ── Load left table (grouped by date + staff) ─────────────────────────────
     def load_prescriptions(self):
         conn = get_connection()
         if not conn:
@@ -174,7 +184,6 @@ class PrescriptionScreen(QMainWindow):
 
                 date_item = QTableWidgetItem(presc_date)
                 date_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                # store raw date + staff_id for lookup
                 date_item.setData(Qt.ItemDataRole.UserRole, (raw_date, staff_id))
                 tbl.setItem(row_index, 0, date_item)
 
@@ -182,7 +191,6 @@ class PrescriptionScreen(QMainWindow):
                 purpose_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 tbl.setItem(row_index, 1, purpose_item)
 
-                # View button
                 def make_handler(d, sid):
                     def handler():
                         self.load_prescription_medicines(d, sid)
@@ -195,14 +203,14 @@ class PrescriptionScreen(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load prescriptions:\n{e}")
 
-    # ── Row click also loads medicines ────────────────────────
+    # ── Row click also loads medicines ────────────────────────────────────────
     def on_prescription_selected(self, row, col):
         item = self.ui.left_prescription_date_and_purpose.item(row, 0)
         if item:
             raw_date, staff_id = item.data(Qt.ItemDataRole.UserRole)
             self.load_prescription_medicines(raw_date, staff_id)
 
-    # ── Load right panel ──────────────────────────────────────
+    # ── Load right panel ──────────────────────────────────────────────────────
     def load_prescription_medicines(self, presc_date, staff_id):
         conn = get_connection()
         if not conn:
@@ -220,8 +228,8 @@ class PrescriptionScreen(QMainWindow):
                        p.timing,
                        p.notes
                 FROM prescription p
-                JOIN staff s   ON p.prescribed_by = s.staff_id
-                JOIN medicine m ON p.medicine_id  = m.medicine_id
+                JOIN staff s    ON p.prescribed_by = s.staff_id
+                JOIN medicine m ON p.medicine_id   = m.medicine_id
                 WHERE p.patient_id = %s
                   AND p.prescription_date = %s
                   AND p.prescribed_by = %s
@@ -234,13 +242,11 @@ class PrescriptionScreen(QMainWindow):
             if not rows:
                 return
 
-            # Header info from first row
             self.ui.prescribed_by_placeholder.setText(rows[0][0])
             date_str = rows[0][1].strftime("%B %d, %Y") if rows[0][1] else ""
             self.ui.date_prescription_date_placeholder.setText(date_str)
             self.ui.notes_placeholder.setText(rows[0][8] or "")
 
-            # Medicine table — Medicine, Dosage, Frequency, Duration, Route, Timing
             tbl = self.ui.patient_table_3
             tbl.setRowCount(0)
             tbl.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -264,13 +270,13 @@ class PrescriptionScreen(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load medicines:\n{e}")
 
-    # ── Open add dialog ───────────────────────────────────────
+    # ── Open add dialog ───────────────────────────────────────────────────────
     def open_add_dialog(self):
         dialog = AddPrescriptionDialog(self.patient_id, parent=self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self.load_prescriptions()
 
-    # ── Outer navigation ──────────────────────────────────────
+    # ── Outer navigation ──────────────────────────────────────────────────────
     def go_to_dashboard(self):
         from screens.dashboard_screen import DashboardScreen
         self.new_window = DashboardScreen()
@@ -301,7 +307,7 @@ class PrescriptionScreen(QMainWindow):
         self.new_window.showMaximized()
         self.close()
 
-    # ── Inner navigation ──────────────────────────────────────
+    # ── Inner navigation ──────────────────────────────────────────────────────
     def go_to_patient_profile(self):
         from screens.patient_profile_screen import PatientProfileScreen
         self.new_window = PatientProfileScreen(self.patient_id)
@@ -315,7 +321,7 @@ class PrescriptionScreen(QMainWindow):
         self.close()
 
     def go_to_prescription(self):
-        pass
+        pass  # already here
 
     def go_to_medical_history(self):
         from screens.medical_history_screen import MedicalHistoryScreen
@@ -329,7 +335,7 @@ class PrescriptionScreen(QMainWindow):
         self.new_window.showMaximized()
         self.close()
 
-    def go_to_appointment(self):
+    def go_to_appointments_tab(self):
         from screens.appointment_patient_record_screen import PatientAppointmentScreen
         self.new_window = PatientAppointmentScreen(self.patient_id)
         self.new_window.showMaximized()

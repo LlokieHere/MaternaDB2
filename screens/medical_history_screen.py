@@ -20,6 +20,7 @@ class MedicalHistoryScreen(QMainWindow):
         self.load_medical_history()
 
         self.ui.add_condition_btn.clicked.connect(self.open_add_dialog)
+        
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

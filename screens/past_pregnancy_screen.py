@@ -109,12 +109,12 @@ class pastPregnancyScreen(QMainWindow):
             self.ui.pushButton_5.clicked.connect(self.logout)
 
             # Inner navigation tabs
-            self.ui.pushButton_7.clicked.connect(self.go_to_patient_profile)  # Patient Profile tab
-            self.ui.pushButton_8.clicked.connect(self.go_to_pastPregnancy)  # Past Pregnancy tab (current)
-            self.ui.pushButton_9.clicked.connect(self.go_to_prescription)
-            self.ui.pushButton_10.clicked.connect(self.go_to_medicalHistory)
-            self.ui.pushButton_11.clicked.connect(self.go_to_family_planning)
-            self.ui.pushButton_12.clicked.connect(self.go_to_appointment_tab)  # if you have this button
+            self.ui.pushButton_6.clicked.connect(self.go_to_patient_profile)  # Patient Profile tab
+            self.ui.pushButton_7.clicked.connect(self.go_to_pastPregnancy)  # Past Pregnancy tab (current)
+            self.ui.pushButton_8.clicked.connect(self.go_to_prescription)
+            self.ui.pushButton_9.clicked.connect(self.go_to_medicalHistory)
+            self.ui.pushButton_10.clicked.connect(self.go_to_family_planning)
+            self.ui.pushButton_11.clicked.connect(self.go_to_appointment_tab)  # if you have this button
 
             self.ui.remove_btn.clicked.connect(self.remove_pregnancy)
 

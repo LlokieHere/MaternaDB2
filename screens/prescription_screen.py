@@ -23,6 +23,24 @@ class PrescriptionScreen(QMainWindow):
         self.ui.ad_prescription.clicked.connect(self.open_add_dialog)
         self.ui.left_prescription_date_and_purpose.cellClicked.connect(
             self.on_prescription_selected)
+        self.load_logo()
+
+
+    def load_logo(self):
+        from PyQt6.QtGui import QPixmap
+        from PyQt6.QtCore import Qt
+        pixmap = QPixmap("Asset/MaternaDB_logo.png")
+        if not pixmap.isNull():
+            self.ui.label_3.setText("")
+            self.ui.label_3.setStyleSheet("")  # ✅ clear the stylesheet
+            self.ui.label_3.setPixmap(
+                pixmap.scaled(
+                    40, 40,
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation
+                )
+            )
+            self.ui.label_3.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     # ── Responsive layout ─────────────────────────────────────────────────────
     def resizeEvent(self, event):

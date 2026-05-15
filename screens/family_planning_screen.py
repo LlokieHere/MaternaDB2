@@ -30,6 +30,24 @@ class FamilyPlanningScreen(QMainWindow):
         self.ui.edit_plan_btn.clicked.connect(self.open_edit_dialog)
         self.ui.discontinue_btn.clicked.connect(self.discontinue_plan)
         self.ui.family_planning_table.cellClicked.connect(self.on_row_selected)
+        self.load_logo()
+
+
+    def load_logo(self):
+        from PyQt6.QtGui import QPixmap
+        from PyQt6.QtCore import Qt
+        pixmap = QPixmap("Asset/MaternaDB_logo.png")
+        if not pixmap.isNull():
+            self.ui.label_3.setText("")
+            self.ui.label_3.setStyleSheet("")  # ✅ clear the stylesheet
+            self.ui.label_3.setPixmap(
+                pixmap.scaled(
+                    40, 40,
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation
+                )
+            )
+            self.ui.label_3.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

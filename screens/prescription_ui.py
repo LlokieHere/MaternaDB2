@@ -440,11 +440,9 @@ class Ui_MainWindow(object):
         self.pushButton_4.setText(_translate("MainWindow", "Appointments"))
         self.pushButton_5.setText(_translate("MainWindow", "Log out"))
         self.label_2.setText(_translate("MainWindow", "MATERNADB"))
-        self.label_3.setText(_translate("MainWindow", "LOGO"))
         self.label.setText(_translate("MainWindow", "Patient Records"))
         self.patient_name.setText(_translate("MainWindow", "NAME"))
         self.next_btn.setText(_translate("MainWindow", "Next"))
-
         self.patient_id_label.setText(_translate("MainWindow", "Patient ID:"))
         self.placeholder_p_ID.setText(_translate("MainWindow", "placeholder"))
         self.age_label.setText(_translate("MainWindow", "Age:"))

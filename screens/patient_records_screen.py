@@ -30,6 +30,21 @@ class PatientRecordScreen(QMainWindow):
         self.setup_navigation()  # ← add this
         self.load_patients()
         self.reposition_ui()
+        self.load_logo()
+
+    def load_logo(self):
+        from PyQt6.QtGui import QPixmap
+        from PyQt6.QtCore import Qt
+        pixmap = QPixmap("Asset/MaternaDB_logo.png")
+        if not pixmap.isNull():
+            self.ui.label_3.setPixmap(
+                pixmap.scaled(
+                    40, 40,
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation
+                )
+            )
+            self.ui.label_3.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

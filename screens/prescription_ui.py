@@ -218,7 +218,6 @@ class Ui_MainWindow(object):
         self.pushButton_6 = QtWidgets.QPushButton(parent=self.layoutWidget1)
         self.pushButton_6.setSizePolicy(sp_exp)
         self.pushButton_6.setStyleSheet(tab_style)
-        self.pushButton_6.setCheckable(True)
         self.pushButton_6.setObjectName("pushButton_6")
         self.horizontalLayout.addWidget(self.pushButton_6)
 
@@ -231,7 +230,30 @@ class Ui_MainWindow(object):
         self.pushButton_8 = QtWidgets.QPushButton(parent=self.layoutWidget1)
         self.pushButton_8.setSizePolicy(sp_exp)
         self.pushButton_8.setStyleSheet(tab_bold_style)
+        self.pushButton_8.setCheckable(True)
+        self.pushButton_8.setChecked(True)
         self.pushButton_8.setObjectName("pushButton_8")
+        self.pushButton_8.setStyleSheet("QPushButton {\n"
+        "    background: transparent;\n"
+        "    border: none;\n"
+        "    padding: 8px 18px;\n"
+        "    color: rgb(26, 26, 62);\n"
+        "    font-size: 14px;\n"
+        "    font-weight: bold;\n"
+        "}\n"
+        "\n"
+        "QPushButton:hover {\n"
+        "    color: #000;\n"
+        "}\n"
+        "\n"
+        "QPushButton:checked {\n"
+        "    color: #1a1a1a;\n"
+        "    border-bottom: 3px solid #2c2c54;\n"
+        "}\n"
+        "\n"
+        "QPushButton:!checked {\n"
+        "    border-bottom: 3px solid transparent;\n"
+        "}")
         self.horizontalLayout.addWidget(self.pushButton_8)
 
         self.pushButton_9 = QtWidgets.QPushButton(parent=self.layoutWidget1)

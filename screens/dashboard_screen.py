@@ -1,9 +1,10 @@
 from PyQt6 import QtWidgets
-from PyQt6.QtWidgets import QMainWindow, QTableWidgetItem, QHeaderView
+from PyQt6.QtWidgets import QMainWindow, QTableWidgetItem, QHeaderView, QLabel, QDialog
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QTimer
 from screens.dashboard_ui import Ui_DashboardScreen
 from database import get_connection
+import user_profile.session as session
 
 
 class DashboardScreen(QMainWindow):
@@ -27,6 +28,82 @@ class DashboardScreen(QMainWindow):
         self.refresh_timer.setInterval(30_000)
         self.refresh_timer.timeout.connect(self.refresh_dashboard)
 
+        self._build_sidebar_profile()
+
+    # -------------------------
+    # SIDEBAR PROFILE
+    # -------------------------
+    def _build_sidebar_profile(self):
+        user = session.get()
+        name = user["name"] if user else "User"
+        role = user.get("role", "Admin") if user else "Admin"
+
+        # Avatar — clicking opens the profile dialog
+        self.profile_avatar = QLabel("👤", parent=self.ui.frame)
+        self.profile_avatar.setFixedSize(64, 64)
+        self.profile_avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.profile_avatar.setStyleSheet(
+            "background-color: #ECC6DC; border-radius: 32px;"
+            "font-size: 28px; border: none;"
+        )
+        self.profile_avatar.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.profile_avatar.mousePressEvent = lambda _: self._open_profile_dialog()
+
+        self.profile_name_lbl = QLabel(name, parent=self.ui.frame)
+        self.profile_name_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.profile_name_lbl.setWordWrap(True)
+        self.profile_name_lbl.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.profile_name_lbl.mousePressEvent = lambda _: self._open_profile_dialog()
+        self.profile_name_lbl.setStyleSheet(
+            "color: white; font-size: 13px; font-weight: bold;"
+            "background: transparent; border: none;"
+        )
+
+        self.profile_role_lbl = QLabel(role, parent=self.ui.frame)
+        self.profile_role_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.profile_role_lbl.setStyleSheet(
+            "color: rgba(255,255,255,0.65); font-size: 11px;"
+            "background: transparent; border: none;"
+        )
+
+        self.profile_divider = QLabel(parent=self.ui.frame)
+        self.profile_divider.setFixedHeight(1)
+        self.profile_divider.setStyleSheet(
+            "background-color: rgba(255,255,255,0.2); border: none;"
+        )
+
+        for w in (self.profile_avatar, self.profile_name_lbl,
+                  self.profile_role_lbl, self.profile_divider):
+            w.show()
+
+    def _reposition_sidebar_profile(self):
+        sidebar_w = self.ui.frame.width()
+        pad     = 16
+        av_size = 64
+
+        av_x = (sidebar_w - av_size) // 2
+        av_y = 20
+        self.profile_avatar.setGeometry(av_x, av_y, av_size, av_size)
+
+        name_y = av_y + av_size + 8
+        self.profile_name_lbl.setGeometry(pad, name_y, sidebar_w - pad * 2, 36)
+
+        role_y = name_y + 38
+        self.profile_role_lbl.setGeometry(pad, role_y, sidebar_w - pad * 2, 18)
+
+        div_y = role_y + 26
+        self.profile_divider.setGeometry(pad, div_y, sidebar_w - pad * 2, 1)
+
+    def _open_profile_dialog(self):
+        from user_profile.user_profile_dialog import UserProfileDialog  # ✅ correct path
+        dlg = UserProfileDialog(parent=self)
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            # Refresh sidebar labels if name/role changed
+            user = session.get()
+            if user:
+                self.profile_name_lbl.setText(user.get("name", ""))
+                self.profile_role_lbl.setText(user.get("role", ""))
+
     # -------------------------
     # EVENTS
     # -------------------------
@@ -35,13 +112,13 @@ class DashboardScreen(QMainWindow):
         if not self._initialized:
             self._initialized = True
             self.setup_ui()
-
         self.refresh_dashboard()
         self.refresh_timer.start()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.layout_dashboard()
+        self._reposition_sidebar_profile()
 
     # -------------------------
     # UI SETUP
@@ -114,6 +191,23 @@ class DashboardScreen(QMainWindow):
         self.ui.today_appointment.setGeometry(right_x, content_y, right_width, content_height)
         self.ui.content_container_TA.setGeometry(right_x + 10, content_y + 10, right_width - 20, 90)
 
+        # Nav buttons below the profile card (card ends ~175px)
+        btn_top = 190
+        btn_h   = 41
+        btn_gap = 5
+        btn_x   = 10
+        btn_w   = sidebar_w - 20
+
+        for i, btn in enumerate([
+            self.ui.pushButton,
+            self.ui.pushButton_2,
+            self.ui.pushButton_3,
+            self.ui.pushButton_4,
+        ]):
+            btn.setGeometry(btn_x, btn_top + i * (btn_h + btn_gap), btn_w, btn_h)
+
+        self.ui.pushButton_5.setGeometry(btn_x, h - navbar_h - 60, btn_w, btn_h)
+
     # -------------------------
     # DATA LOADING
     # -------------------------
@@ -126,7 +220,6 @@ class DashboardScreen(QMainWindow):
         conn = get_connection()
         if not conn:
             return
-
         try:
             cursor = conn.cursor()
 
@@ -159,10 +252,8 @@ class DashboardScreen(QMainWindow):
             self.ui.total_patient_label_5.setText(str(cursor.fetchone()[0]))
 
             cursor.close()
-
         except Exception as e:
             print("Stats error:", e)
-
         finally:
             conn.close()
 
@@ -170,7 +261,6 @@ class DashboardScreen(QMainWindow):
         conn = get_connection()
         if not conn:
             return
-
         try:
             cursor = conn.cursor()
             cursor.execute("""
@@ -182,21 +272,14 @@ class DashboardScreen(QMainWindow):
                 ORDER BY date_registered DESC
                 LIMIT 5
             """)
-
             patients = cursor.fetchall()
             self.ui.patient_table.setRowCount(len(patients))
-
             for row, patient in enumerate(patients):
                 for col, value in enumerate(patient):
-                    self.ui.patient_table.setItem(
-                        row, col, QTableWidgetItem(str(value))
-                    )
-
+                    self.ui.patient_table.setItem(row, col, QTableWidgetItem(str(value)))
             cursor.close()
-
         except Exception as e:
             print("Patient load error:", e)
-
         finally:
             conn.close()
 
@@ -204,36 +287,29 @@ class DashboardScreen(QMainWindow):
         conn = get_connection()
         if not conn:
             return
-
         try:
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT
-                    p.first_name || ' ' || p.last_name  AS patient_name,
+                    p.first_name || ' ' || p.last_name AS patient_name,
                     a.appointment_time,
-                    STRING_AGG(ap.purpose, ', ')         AS purposes,
+                    STRING_AGG(ap.purpose, ', ')        AS purposes,
                     a.appointment_date
                 FROM appointment a
-                JOIN patient_profile p
-                    ON a.patient_id = p.patient_id
-                JOIN appointment_purpose ap
-                    ON a.appointment_id = ap.appointment_id
+                JOIN patient_profile p ON a.patient_id = p.patient_id
+                JOIN appointment_purpose ap ON a.appointment_id = ap.appointment_id
                 WHERE a.appointment_date = CURRENT_DATE
                 AND   a.status = 'Scheduled'
-                GROUP BY p.first_name, p.last_name,
-                         a.appointment_time, a.appointment_date
+                GROUP BY p.first_name, p.last_name, a.appointment_time, a.appointment_date
                 ORDER BY a.appointment_time
                 LIMIT 1
             """)
-
             row = cursor.fetchone()
             cursor.close()
 
             if row:
                 patient_name, appt_time, purposes, appt_date = row
-
                 time_str = appt_time.strftime("%I:%M %p") if appt_time else ""
-
                 self.ui.day.setText(str(appt_date.day))
                 self.ui.day_2.setText(appt_date.strftime("%b"))
                 self.ui.patient_name_TA.setText(patient_name)
@@ -245,10 +321,8 @@ class DashboardScreen(QMainWindow):
                 self.ui.patient_name_TA.setText("No appointments today")
                 self.ui.time_TA.setText("")
                 self.ui.purpose_TA.setText("")
-
         except Exception as e:
             print("Today's appointment error:", e)
-
         finally:
             conn.close()
 
@@ -270,10 +344,15 @@ class DashboardScreen(QMainWindow):
         self.close()
 
     def go_to_appointments(self):
-        print("Appointments screen not connected yet")
+        self.refresh_timer.stop()
+        from screens.appointments_screen import AppointmentsScreen
+        self.new_window = AppointmentsScreen()
+        self.new_window.showMaximized()
+        self.close()
 
     def logout(self):
         self.refresh_timer.stop()
+        session.clear()
         from screens.login_screen import LoginScreen
         self.new_window = LoginScreen()
         self.new_window.showMaximized()

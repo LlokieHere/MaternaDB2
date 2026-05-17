@@ -70,7 +70,7 @@ class Ui_MainWindow(object):
         self.frame.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
 
         sidebar_layout = QtWidgets.QVBoxLayout(self.frame)
-        sidebar_layout.setContentsMargins(20, 120, 10, 20)
+        sidebar_layout.setContentsMargins(20, 240, 10, 20)
         sidebar_layout.setSpacing(8)
 
         btn_style_nav = (

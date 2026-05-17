@@ -1,10 +1,11 @@
 from PyQt6.QtWidgets import (
-    QMainWindow, QMessageBox, QTableWidgetItem, QDialog
+    QLabel, QMainWindow, QMessageBox, QTableWidgetItem, QDialog
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QHeaderView
 from screens.medical_history_ui import Ui_MainWindow
 from database import get_connection
+import user_profile.session as session
 
 
 class MedicalHistoryScreen(QMainWindow):
@@ -21,6 +22,7 @@ class MedicalHistoryScreen(QMainWindow):
 
         self.ui.add_condition_btn.clicked.connect(self.open_add_dialog)
         self.load_logo()
+        self._build_sidebar_profile()
 
 
     def load_logo(self):
@@ -38,6 +40,188 @@ class MedicalHistoryScreen(QMainWindow):
                 )
             )
             self.ui.label_3.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # -------------------------
+    # SIDEBAR PROFILE
+    # -------------------------
+    def _build_sidebar_profile(self):
+        user = session.get()
+        name = user["name"] if user else "User"
+        role = user.get("role", "Admin") if user else "Admin"
+
+        # Avatar — clicking opens the profile dialog
+        self.profile_avatar = QLabel("👤", parent=self.ui.frame)
+        self.profile_avatar.setFixedSize(64, 64)
+        self.profile_avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.profile_avatar.setStyleSheet(
+            "background-color: #ECC6DC; border-radius: 32px;"
+            "font-size: 28px; border: none;"
+        )
+        self.profile_avatar.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.profile_avatar.mousePressEvent = lambda _: self._open_profile_dialog()
+
+        self.profile_name_lbl = QLabel(name, parent=self.ui.frame)
+        self.profile_name_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.profile_name_lbl.setWordWrap(True)
+        self.profile_name_lbl.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.profile_name_lbl.mousePressEvent = lambda _: self._open_profile_dialog()
+        self.profile_name_lbl.setStyleSheet(
+            "color: white; font-size: 13px; font-weight: bold;"
+            "background: transparent; border: none;"
+        )
+
+        self.profile_role_lbl = QLabel(role, parent=self.ui.frame)
+        self.profile_role_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.profile_role_lbl.setStyleSheet(
+            """
+            color: white;
+            font-size: 11px;
+            border: none;
+            """
+        )
+
+        self.profile_divider = QLabel(parent=self.ui.frame)
+        self.profile_divider.setFixedHeight(1)
+        self.profile_divider.setStyleSheet(
+            "background-color: rgba(255,255,255,0.2); border: none;"
+        )
+
+        for w in (
+            self.profile_avatar,
+            self.profile_name_lbl,
+            self.profile_role_lbl,
+            self.profile_divider
+        ):
+            w.raise_()
+            w.show()
+
+    def _reposition_sidebar_profile(self):
+        sidebar_w = self.ui.frame.width()
+        pad     = 16
+        av_size = 64
+
+        av_x = (sidebar_w - av_size) // 2
+        av_y = 20
+        self.profile_avatar.setGeometry(av_x, av_y, av_size, av_size)
+
+        name_y = av_y + av_size + 8
+        self.profile_name_lbl.setGeometry(pad, name_y, sidebar_w - pad * 2, 36)
+
+        role_y = name_y + 24
+        self.profile_role_lbl.setGeometry(pad, role_y, sidebar_w - pad * 2, 18)
+
+        div_y = role_y + 18
+        self.profile_divider.setGeometry(pad, div_y, sidebar_w - pad * 2, 1)
+
+    def _open_profile_dialog(self):
+        from user_profile.user_profile_dialog import UserProfileDialog  # ✅ correct path
+        dlg = UserProfileDialog(parent=self)
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            # Refresh sidebar labels if name/role changed
+            user = session.get()
+            if user:
+                self.profile_name_lbl.setText(user.get("name", ""))
+                self.profile_role_lbl.setText(user.get("role", ""))
+
+    # =====================================================
+    # 📏 AUTO REPOSITION SIDEBAR PROFILE ON RESIZE
+    # =====================================================
+
+    def layout_sidebar(self):
+        h = self.height()
+
+        sidebar_w = 230
+
+        # Profile section
+        self.profile_avatar.setGeometry(73, 20, 64, 64)
+
+        self.profile_name_lbl.setGeometry(20, 95, 190, 30)
+
+        self.profile_role_lbl.setGeometry(20, 120, 190, 20)
+
+        self.profile_divider.setGeometry(15, 150, 200, 1)
+
+        # Navigation buttons
+        btn_top = 170
+        btn_h = 41
+        btn_gap = 8
+        btn_x = 10
+        btn_w = sidebar_w - 20
+
+        buttons = [
+            self.ui.pushButton,
+            self.ui.pushButton_2,
+            self.ui.pushButton_3,
+            self.ui.pushButton_4,
+        ]
+
+        for i, btn in enumerate(buttons):
+            btn.setGeometry(
+                btn_x,
+                btn_top + i * (btn_h + btn_gap),
+                btn_w,
+                btn_h
+            )
+
+        # Logout button
+        self.ui.pushButton_5.setGeometry(
+            btn_x,
+            h - 120,
+            btn_w,
+            btn_h
+        )
+
+    def layout_nav(self):
+        w = self.width()
+        h = self.height()
+
+        sidebar_w = 230
+        navbar_h = 60
+        padding = 30
+
+        # Top navbar
+        self.ui.frame_2.setGeometry(0, 0, w, navbar_h)
+
+        # Sidebar
+        self.ui.frame.setGeometry(0, navbar_h, sidebar_w, h - navbar_h)
+
+        # Main content
+        self.ui.frame_3.setGeometry(
+            sidebar_w,
+            navbar_h,
+            w - sidebar_w,
+            h - navbar_h
+        )
+
+        # Sidebar buttons
+        btn_x = 20
+        btn_w = 191
+        btn_h = 41
+        gap = 10
+
+        start_y = 180
+
+        buttons = [
+            self.ui.pushButton,
+            self.ui.pushButton_2,
+            self.ui.pushButton_3,
+            self.ui.pushButton_4,
+        ]
+
+        for i, btn in enumerate(buttons):
+            btn.setGeometry(
+                btn_x,
+                start_y + i * (btn_h + gap),
+                btn_w,
+                btn_h
+            )
+
+        # Logout button pinned near bottom
+        self.ui.pushButton_5.setGeometry(
+            btn_x,
+            h - navbar_h - 70,
+            btn_w,
+            btn_h
+        )
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -84,6 +268,10 @@ class MedicalHistoryScreen(QMainWindow):
         self.ui.medical_history_table.setGeometry(0, 0, inner_w, table_h)
         self.ui.medical_history_table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Stretch)
+        
+        self._reposition_sidebar_profile()
+        self.layout_sidebar()
+        self.layout_nav()
 
     def setup_navigation(self):
         try:

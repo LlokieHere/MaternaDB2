@@ -6,7 +6,6 @@ from screens.dashboard_ui import Ui_DashboardScreen
 from database import get_connection
 import user_profile.session as session
 
-
 class DashboardScreen(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -23,6 +22,9 @@ class DashboardScreen(QMainWindow):
         self.ui.pushButton_4.clicked.connect(self.go_to_appointments)
         self.ui.pushButton_5.clicked.connect(self.logout)
 
+        # ── NEW: Manage Staff button ──────────────────────────────────────
+        self.ui.manage_staff_btn.clicked.connect(self._open_staff_management)
+
         # Auto-refresh every 30 seconds
         self.refresh_timer = QTimer(self)
         self.refresh_timer.setInterval(30_000)
@@ -38,7 +40,6 @@ class DashboardScreen(QMainWindow):
         name = user["name"] if user else "User"
         role = user.get("role", "Admin") if user else "Admin"
 
-        # Avatar — clicking opens the profile dialog
         self.profile_avatar = QLabel("👤", parent=self.ui.frame)
         self.profile_avatar.setFixedSize(64, 64)
         self.profile_avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -95,10 +96,9 @@ class DashboardScreen(QMainWindow):
         self.profile_divider.setGeometry(pad, div_y, sidebar_w - pad * 2, 1)
 
     def _open_profile_dialog(self):
-        from user_profile.user_profile_dialog import UserProfileDialog  # ✅ correct path
+        from user_profile.user_profile_dialog import UserProfileDialog
         dlg = UserProfileDialog(parent=self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
-            # Refresh sidebar labels if name/role changed
             user = session.get()
             if user:
                 self.profile_name_lbl.setText(user.get("name", ""))
@@ -191,7 +191,7 @@ class DashboardScreen(QMainWindow):
         self.ui.today_appointment.setGeometry(right_x, content_y, right_width, content_height)
         self.ui.content_container_TA.setGeometry(right_x + 10, content_y + 10, right_width - 20, 90)
 
-        # Nav buttons below the profile card (card ends ~175px)
+        # Nav buttons
         btn_top = 190
         btn_h   = 41
         btn_gap = 5
@@ -357,3 +357,9 @@ class DashboardScreen(QMainWindow):
         self.new_window = LoginScreen()
         self.new_window.showMaximized()
         self.close()
+
+    # ── NEW ──────────────────────────────────────────────────────────────────
+    def _open_staff_management(self):
+        from staff_management.staff_management_dialog import StaffManagementDialog
+        dlg = StaffManagementDialog(parent=self)
+        dlg.exec()   # opens as dialog; user stays on dashboard when closed

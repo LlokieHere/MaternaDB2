@@ -6,3 +6,4 @@ Need to finish
 - Adding staffs in dashboard
 - whole prenatal care module
 - user profile in appointments module
+- Finalize Database

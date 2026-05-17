@@ -1,10 +1,11 @@
+from PyQt6 import QtWidgets
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMainWindow, QMessageBox, QWidget
 from PyQt6.QtGui import QPainter, QColor, QBrush, QPixmap
 from screens.login_ui import Ui_MainWindow
 from database import get_connection
 import user_profile.session as session  # ✅ FIXED: was `import user_profile.session`
-
+from PyQt6.QtCore import QSettings
 
 class BlobBackground(QWidget):
     def __init__(self, parent=None):
@@ -40,6 +41,16 @@ class LoginScreen(QMainWindow):
         self._initialized = False
         self._password_visible = False
 
+        settings = QSettings("MaternaDB", "Login")
+        saved_email = settings.value("email")
+        saved_password = settings.value("password")
+
+        if saved_email:
+            self.ui.EmailInput.setText(saved_email)
+            self.ui.checkBox.setChecked(True)
+        if saved_password:
+            self.ui.PasswordInput.setText(saved_password)
+            self.ui.checkBox.setChecked(True)
         self.setStyleSheet("")
 
         self.blob_bg = BlobBackground(self)
@@ -141,7 +152,7 @@ class LoginScreen(QMainWindow):
         self.ui.log_inFrame.setGeometry(x, y, card_w, card_h)
 
     def sign_in(self):
-        email    = self.ui.EmailInput.text().strip()
+        email = self.ui.EmailInput.text().strip()
         password = self.ui.PasswordInput.text()
 
         if not email or not password:
@@ -157,22 +168,35 @@ class LoginScreen(QMainWindow):
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT user_id, name, email, password,
-                       role, contact, profile_pic, date_joined
+                    role, contact, profile_pic, date_joined
                 FROM users
                 WHERE email = %s AND password = %s
             """, (email, password))
+
             user = cursor.fetchone()
             cursor.close()
             conn.close()
 
-            if user:
-                session.set_user(user)  # ✅ works now
-                from screens.dashboard_screen import DashboardScreen
-                self.dashboard = DashboardScreen()
-                self.dashboard.showMaximized()
-                self.close()
-            else:
+            if not user:
                 QMessageBox.warning(self, "Error", "Invalid email or password!")
+                return
+
+            # ✅ ONLY RUN IF LOGIN IS SUCCESSFUL
+            session.set_user(user)
+
+            settings = QSettings("MaternaDB", "Login")
+
+            if self.ui.checkBox.isChecked():
+                settings.setValue("email", email)
+                settings.setValue("password", password)  # ⚠️ not recommended
+            else:
+                settings.remove("email")
+                settings.remove("password")
+
+            from screens.dashboard_screen import DashboardScreen
+            self.dashboard = DashboardScreen()
+            self.dashboard.showMaximized()
+            self.close()
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Login failed:\n{e}")
@@ -184,4 +208,33 @@ class LoginScreen(QMainWindow):
         self.close()
 
     def forgot_password(self):
-        print("Forgot password clicked")
+        email = self.ui.EmailInput.text().strip()
+
+        if not email:
+            QMessageBox.warning(self, "Error", "Enter your email first.")
+            return
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT user_id FROM users WHERE email = %s", (email,))
+        user = cursor.fetchone()
+
+        if not user:
+            QMessageBox.warning(self, "Error", "Email not found.")
+            return
+
+        new_password, ok = QtWidgets.QInputDialog.getText(
+            self, "Reset Password", "Enter new password:"
+        )
+
+        if ok and new_password:
+            cursor.execute(
+                "UPDATE users SET password = %s WHERE email = %s",
+                (new_password, email)
+            )
+            conn.commit()
+            QMessageBox.information(self, "Success", "Password updated!")
+
+        cursor.close()
+        conn.close()

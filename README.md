@@ -37,7 +37,7 @@ The system centralizes critical patient information, allowing healthcare provide
 
 * **Python**
 * **PyQt6** (Graphical User Interface)
-* **SQLite / Database System** *(update this if you're using another DB)*
+* **POSTGRESQL / Database System** 
 
 ## 🎯 Purpose
 
@@ -54,7 +54,6 @@ This system is developed to support healthcare providers in delivering better ma
 * Analytics and reporting features
 * Mobile integration
 
-## 👨‍💻 Developers
 
 * *(Your Name Here)*
 

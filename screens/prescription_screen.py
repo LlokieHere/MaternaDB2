@@ -27,14 +27,13 @@ class PrescriptionScreen(QMainWindow):
         self.load_logo()
         self._build_sidebar_profile()
 
-
     def load_logo(self):
         from PyQt6.QtGui import QPixmap
         from PyQt6.QtCore import Qt
         pixmap = QPixmap("Asset/MaternaDB_logo.png")
         if not pixmap.isNull():
             self.ui.label_3.setText("")
-            self.ui.label_3.setStyleSheet("")  # ✅ clear the stylesheet
+            self.ui.label_3.setStyleSheet("")
             self.ui.label_3.setPixmap(
                 pixmap.scaled(
                     40, 40,
@@ -44,7 +43,6 @@ class PrescriptionScreen(QMainWindow):
             )
             self.ui.label_3.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-    
     # -------------------------
     # SIDEBAR PROFILE
     # -------------------------
@@ -53,7 +51,6 @@ class PrescriptionScreen(QMainWindow):
         name = user["name"] if user else "User"
         role = user.get("role", "Admin") if user else "Admin"
 
-        # Avatar — clicking opens the profile dialog
         self.profile_avatar = QLabel("👤", parent=self.ui.frame)
         self.profile_avatar.setFixedSize(64, 64)
         self.profile_avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -77,11 +74,7 @@ class PrescriptionScreen(QMainWindow):
         self.profile_role_lbl = QLabel(role, parent=self.ui.frame)
         self.profile_role_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.profile_role_lbl.setStyleSheet(
-            """
-            color: white;
-            font-size: 11px;
-            border: none;
-            """
+            "color: white; font-size: 11px; border: none;"
         )
 
         self.profile_divider = QLabel(parent=self.ui.frame)
@@ -90,12 +83,8 @@ class PrescriptionScreen(QMainWindow):
             "background-color: rgba(255,255,255,0.2); border: none;"
         )
 
-        for w in (
-            self.profile_avatar,
-            self.profile_name_lbl,
-            self.profile_role_lbl,
-            self.profile_divider
-        ):
+        for w in (self.profile_avatar, self.profile_name_lbl,
+                  self.profile_role_lbl, self.profile_divider):
             w.raise_()
             w.show()
 
@@ -118,117 +107,59 @@ class PrescriptionScreen(QMainWindow):
         self.profile_divider.setGeometry(pad, div_y, sidebar_w - pad * 2, 1)
 
     def _open_profile_dialog(self):
-        from user_profile.user_profile_dialog import UserProfileDialog  # ✅ correct path
+        from user_profile.user_profile_dialog import UserProfileDialog
         dlg = UserProfileDialog(parent=self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
-            # Refresh sidebar labels if name/role changed
             user = session.get()
             if user:
                 self.profile_name_lbl.setText(user.get("name", ""))
                 self.profile_role_lbl.setText(user.get("role", ""))
 
-    # =====================================================
-    # 📏 AUTO REPOSITION SIDEBAR PROFILE ON RESIZE
-    # =====================================================
-
+    # ── Layout helpers ────────────────────────────────────────────────────────
     def layout_sidebar(self):
         h = self.height()
-
         sidebar_w = 230
 
-        # Profile section
         self.profile_avatar.setGeometry(73, 20, 64, 64)
-
         self.profile_name_lbl.setGeometry(20, 95, 190, 30)
-
         self.profile_role_lbl.setGeometry(20, 120, 190, 20)
-
         self.profile_divider.setGeometry(15, 150, 200, 1)
 
-        # Navigation buttons
         btn_top = 170
-        btn_h = 41
+        btn_h   = 41
         btn_gap = 8
-        btn_x = 10
-        btn_w = sidebar_w - 20
+        btn_x   = 10
+        btn_w   = sidebar_w - 20
 
-        buttons = [
-            self.ui.pushButton,
-            self.ui.pushButton_2,
-            self.ui.pushButton_3,
-            self.ui.pushButton_4,
-        ]
+        for i, btn in enumerate([
+            self.ui.pushButton, self.ui.pushButton_2,
+            self.ui.pushButton_3, self.ui.pushButton_4,
+        ]):
+            btn.setGeometry(btn_x, btn_top + i * (btn_h + btn_gap), btn_w, btn_h)
 
-        for i, btn in enumerate(buttons):
-            btn.setGeometry(
-                btn_x,
-                btn_top + i * (btn_h + btn_gap),
-                btn_w,
-                btn_h
-            )
-
-        # Logout button
-        self.ui.pushButton_5.setGeometry(
-            btn_x,
-            h - 120,
-            btn_w,
-            btn_h
-        )
+        self.ui.pushButton_5.setGeometry(btn_x, h - 120, btn_w, btn_h)
 
     def layout_nav(self):
         w = self.width()
         h = self.height()
 
         sidebar_w = 230
-        navbar_h = 60
-        padding = 30
+        navbar_h  = 60
 
-        # Top navbar
         self.ui.frame_2.setGeometry(0, 0, w, navbar_h)
-
-        # Sidebar
         self.ui.frame.setGeometry(0, navbar_h, sidebar_w, h - navbar_h)
+        self.ui.frame_3.setGeometry(sidebar_w, navbar_h, w - sidebar_w, h - navbar_h)
 
-        # Main content
-        self.ui.frame_3.setGeometry(
-            sidebar_w,
-            navbar_h,
-            w - sidebar_w,
-            h - navbar_h
-        )
-
-        # Sidebar buttons
-        btn_x = 20
-        btn_w = 191
-        btn_h = 41
-        gap = 10
-
+        btn_x, btn_w, btn_h, gap = 20, 191, 41, 10
         start_y = 180
+        for i, btn in enumerate([
+            self.ui.pushButton, self.ui.pushButton_2,
+            self.ui.pushButton_3, self.ui.pushButton_4,
+        ]):
+            btn.setGeometry(btn_x, start_y + i * (btn_h + gap), btn_w, btn_h)
 
-        buttons = [
-            self.ui.pushButton,
-            self.ui.pushButton_2,
-            self.ui.pushButton_3,
-            self.ui.pushButton_4,
-        ]
+        self.ui.pushButton_5.setGeometry(btn_x, h - navbar_h - 70, btn_w, btn_h)
 
-        for i, btn in enumerate(buttons):
-            btn.setGeometry(
-                btn_x,
-                start_y + i * (btn_h + gap),
-                btn_w,
-                btn_h
-            )
-
-        # Logout button pinned near bottom
-        self.ui.pushButton_5.setGeometry(
-            btn_x,
-            h - navbar_h - 70,
-            btn_w,
-            btn_h
-        )
-
-    # ── Responsive layout ─────────────────────────────────────────────────────
     def resizeEvent(self, event):
         super().resizeEvent(event)
         w = self.width()
@@ -250,7 +181,7 @@ class PrescriptionScreen(QMainWindow):
         content_h = h - 61
         self.ui.frame_3.setGeometry(content_x, 61, content_w, content_h)
 
-        pad = 40
+        pad     = 40
         inner_w = content_w - (pad * 2)
 
         self.ui.label.setGeometry(pad, 20, inner_w // 2, 61)
@@ -271,8 +202,8 @@ class PrescriptionScreen(QMainWindow):
 
         panels_y = btn_y + 41
         panels_h = content_h - panels_y - pad
-        left_w  = int(inner_w * 0.45)
-        right_w = inner_w - left_w - 20
+        left_w   = int(inner_w * 0.45)
+        right_w  = inner_w - left_w - 20
 
         self.ui.left.setGeometry(pad, panels_y, left_w, panels_h)
         self.ui.left_prescription_date_and_purpose.setGeometry(0, 0, left_w, panels_h)
@@ -292,7 +223,7 @@ class PrescriptionScreen(QMainWindow):
         self.layout_sidebar()
         self.layout_nav()
 
-    # ── Navigation ────────────────────────────────────────────────────────────
+    # ── Navigation setup ──────────────────────────────────────────────────────
     def setup_navigation(self):
         try:
             self.ui.pushButton.clicked.connect(self.go_to_dashboard)
@@ -309,14 +240,13 @@ class PrescriptionScreen(QMainWindow):
         except Exception as e:
             print("Navigation error:", e)
 
-    # ── Load patient header (now includes age) ────────────────────────────────
+    # ── Patient header ────────────────────────────────────────────────────────
     def load_patient_data(self):
         conn = get_connection()
         if not conn:
             return
         try:
             cursor = conn.cursor()
-
             cursor.execute("""
                 SELECT patient_id, first_name, middle_name, last_name,
                        date_registered, blood_type, philhealth_no
@@ -331,9 +261,7 @@ class PrescriptionScreen(QMainWindow):
                 WHERE patient_id = %s
             """, (self.patient_id,))
             age_result = cursor.fetchone()
-
             cursor.close()
-            conn.close()
 
             if not data:
                 return
@@ -346,17 +274,15 @@ class PrescriptionScreen(QMainWindow):
             self.ui.placeholder_register_date.setText(register)
             self.ui.placeholder_p_bloodType.setText(data[5] or "")
             self.ui.placeholder_philhealth_num.setText(str(data[6]))
-
-            # ✅ Age
-            if age_result and age_result[0]:
-                self.ui.placeholder_age.setText(str(int(age_result[0])))
-            else:
-                self.ui.placeholder_age.setText("—")
-
+            self.ui.placeholder_age.setText(
+                str(int(age_result[0])) if age_result and age_result[0] else "—"
+            )
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load patient:\n{e}")
+        finally:
+            conn.close()
 
-    # ── Load left table (grouped by date + staff) ─────────────────────────────
+    # ── Left table: one row per (date, prescriber) group ─────────────────────
     def load_prescriptions(self):
         conn = get_connection()
         if not conn:
@@ -364,9 +290,10 @@ class PrescriptionScreen(QMainWindow):
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT DISTINCT p.prescription_date,
-                                s.staff_id,
-                                s.first_name || ' ' || s.last_name AS staff_name
+                SELECT DISTINCT
+                    p.prescription_date,
+                    s.staff_id,
+                    s.first_name || ' ' || s.last_name AS staff_name
                 FROM prescription p
                 JOIN staff s ON p.prescribed_by = s.staff_id
                 WHERE p.patient_id = %s
@@ -374,20 +301,15 @@ class PrescriptionScreen(QMainWindow):
             """, (self.patient_id,))
             rows = cursor.fetchall()
             cursor.close()
-            conn.close()
 
             tbl = self.ui.left_prescription_date_and_purpose
             tbl.setRowCount(0)
             tbl.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
             tbl.horizontalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
 
-            for row_data in rows:
-                presc_date = row_data[0].strftime("%B %d, %Y") if row_data[0] else ""
-                staff_id   = row_data[1]
-                staff_name = row_data[2]
-                raw_date   = row_data[0]
-
-                row_index = tbl.rowCount()
+            for raw_date, staff_id, staff_name in rows:
+                presc_date = raw_date.strftime("%B %d, %Y") if raw_date else ""
+                row_index  = tbl.rowCount()
                 tbl.insertRow(row_index)
 
                 date_item = QTableWidgetItem(presc_date)
@@ -395,65 +317,68 @@ class PrescriptionScreen(QMainWindow):
                 date_item.setData(Qt.ItemDataRole.UserRole, (raw_date, staff_id))
                 tbl.setItem(row_index, 0, date_item)
 
-                purpose_item = QTableWidgetItem(staff_name)
-                purpose_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                tbl.setItem(row_index, 1, purpose_item)
-
-                def make_handler(d, sid):
-                    def handler():
-                        self.load_prescription_medicines(d, sid)
-                    return handler
+                staff_item = QTableWidgetItem(staff_name)
+                staff_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                tbl.setItem(row_index, 1, staff_item)
 
                 view_btn = QPushButton("View")
-                view_btn.clicked.connect(make_handler(raw_date, staff_id))
+                view_btn.clicked.connect(
+                    (lambda d, sid: lambda: self.load_prescription_medicines(d, sid))(raw_date, staff_id)
+                )
                 tbl.setCellWidget(row_index, 2, view_btn)
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load prescriptions:\n{e}")
+        finally:
+            conn.close()
 
-    # ── Row click also loads medicines ────────────────────────────────────────
     def on_prescription_selected(self, row, col):
         item = self.ui.left_prescription_date_and_purpose.item(row, 0)
         if item:
             raw_date, staff_id = item.data(Qt.ItemDataRole.UserRole)
             self.load_prescription_medicines(raw_date, staff_id)
 
-    # ── Load right panel ──────────────────────────────────────────────────────
+    # ── Right panel: medicines for selected (date, prescriber) ───────────────
     def load_prescription_medicines(self, presc_date, staff_id):
         conn = get_connection()
         if not conn:
             return
         try:
             cursor = conn.cursor()
+            # ✅ No JOIN to medicine table — medicine_name lives on prescription now
             cursor.execute("""
-                SELECT s.first_name || ' ' || s.last_name,
-                       p.prescription_date,
-                       m.medicine_name,
-                       p.dosage,
-                       p.frequency,
-                       p.duration,
-                       p.route,
-                       p.timing,
-                       p.notes
+                SELECT
+                    s.first_name || ' ' || s.last_name AS prescriber,
+                    p.prescription_date,
+                    p.medicine_name,
+                    p.dosage,
+                    p.frequency,
+                    p.duration,
+                    p.route,
+                    p.timing,
+                    p.notes
                 FROM prescription p
-                JOIN staff s    ON p.prescribed_by = s.staff_id
-                JOIN medicine m ON p.medicine_id   = m.medicine_id
-                WHERE p.patient_id = %s
+                JOIN staff s ON p.prescribed_by = s.staff_id
+                WHERE p.patient_id  = %s
                   AND p.prescription_date = %s
-                  AND p.prescribed_by = %s
+                  AND p.prescribed_by     = %s
+                ORDER BY p.prescription_id
             """, (self.patient_id, presc_date, staff_id))
 
             rows = cursor.fetchall()
             cursor.close()
-            conn.close()
 
             if not rows:
                 return
 
+            # Header info (same for all rows in this group)
             self.ui.prescribed_by_placeholder.setText(rows[0][0])
             date_str = rows[0][1].strftime("%B %d, %Y") if rows[0][1] else ""
             self.ui.date_prescription_date_placeholder.setText(date_str)
-            self.ui.notes_placeholder.setText(rows[0][8] or "")
+
+            # Show notes from the first medicine that has one, or clear
+            notes = next((r[8] for r in rows if r[8]), "")
+            self.ui.notes_placeholder.setText(notes)
 
             tbl = self.ui.patient_table_3
             tbl.setRowCount(0)
@@ -463,20 +388,17 @@ class PrescriptionScreen(QMainWindow):
             for med in rows:
                 row_index = tbl.rowCount()
                 tbl.insertRow(row_index)
-                for col, val in enumerate([
-                    med[2],  # medicine_name
-                    med[3],  # dosage
-                    med[4],  # frequency
-                    med[5],  # duration
-                    med[6],  # route
-                    med[7],  # timing
-                ]):
+                # med[2]=medicine_name  [3]=dosage  [4]=frequency
+                # med[5]=duration       [6]=route    [7]=timing
+                for col, val in enumerate(med[2:8]):
                     item = QTableWidgetItem(str(val) if val else "")
                     item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                     tbl.setItem(row_index, col, item)
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load medicines:\n{e}")
+        finally:
+            conn.close()
 
     # ── Open add dialog ───────────────────────────────────────────────────────
     def open_add_dialog(self):

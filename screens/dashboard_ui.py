@@ -1,7 +1,3 @@
-# Form implementation generated from reading ui file 'Ui/dashboard.ui'
-# Fixed: Replaced all hardcoded geometries with proper Qt layouts
-# so elements scale correctly in fullscreen / resized windows.
-
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
@@ -120,14 +116,57 @@ class Ui_DashboardScreen(object):
         content_layout.setContentsMargins(40, 20, 40, 20)
         content_layout.setSpacing(16)
 
-        # Title label
+        # ── Title row: "DASHBOARD" label + Manage Staff button ───────────────
+        title_row = QtWidgets.QHBoxLayout()
+        title_row.setContentsMargins(0, 0, 0, 0)
+        title_row.setSpacing(12)
+
         self.label = QtWidgets.QLabel(parent=self.frame_3)
         font_title = QtGui.QFont()
         font_title.setFamily("Arial Black")
         font_title.setPointSize(30)
         self.label.setFont(font_title)
         self.label.setObjectName("label")
-        content_layout.addWidget(self.label)
+        title_row.addWidget(self.label)
+
+        title_row.addStretch()
+
+        # ── NEW: Manage Staff button ─────────────────────────────────────────
+        self.manage_staff_btn = QtWidgets.QPushButton(parent=self.frame_3)
+        self.manage_staff_btn.setText("👥  Manage Staff")
+        self.manage_staff_btn.setObjectName("manage_staff_btn")
+        self.manage_staff_btn.setFixedHeight(38)
+        self.manage_staff_btn.setCursor(
+            QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor)
+        )
+        self.manage_staff_btn.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed,
+            QtWidgets.QSizePolicy.Policy.Fixed,
+        )
+        self.manage_staff_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgb(192, 116, 182);
+                color: white;
+                font-family: 'Segoe UI';
+                font-size: 13px;
+                font-weight: bold;
+                border-radius: 8px;
+                padding: 0px 20px;
+            }
+            QPushButton:hover {
+                background-color: rgb(170, 90, 160);
+            }
+            QPushButton:pressed {
+                background-color: rgb(140, 60, 130);
+            }
+        """)
+        title_row.addWidget(
+            self.manage_staff_btn,
+            alignment=QtCore.Qt.AlignmentFlag.AlignVCenter
+        )
+        # ────────────────────────────────────────────────────────────────────
+
+        content_layout.addLayout(title_row)
 
         # ── STAT CARDS row ───────────────────────────────────────────────────
         self.layoutWidget = QtWidgets.QWidget(parent=self.frame_3)
@@ -137,7 +176,7 @@ class Ui_DashboardScreen(object):
         self.gridLayout.setHorizontalSpacing(20)
 
         card_min = QtCore.QSize(200, 99)
-        card_max = QtCore.QSize(16777215, 130)   # allow horizontal growth
+        card_max = QtCore.QSize(16777215, 130)
         expanding = QtWidgets.QSizePolicy(
             QtWidgets.QSizePolicy.Policy.Expanding,
             QtWidgets.QSizePolicy.Policy.Expanding,
@@ -350,7 +389,6 @@ class Ui_DashboardScreen(object):
 
         right_col.addWidget(self.content_container_TA)
 
-        # Keep the QTableView placeholder too
         self.today_appointment = QtWidgets.QTableView(parent=self.frame_3)
         self.today_appointment.setStyleSheet(
             "background-color: rgb(235, 197, 219); border-radius: 15px;"

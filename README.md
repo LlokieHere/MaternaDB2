@@ -2,6 +2,7 @@ NEED TO FINISH:
 
 - whole prenatal care module
 - Finalize Database
+- Finalize appointment module since there are some xolumns that weren't used in the appointment module
 
 
 # MATERNADB: Integrated Maternal Health Information System

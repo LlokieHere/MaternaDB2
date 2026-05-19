@@ -16,6 +16,41 @@ class PatientAppointmentScreen(QMainWindow):
         self.patient_id = patient_id
         self.setWindowTitle("Appointment History")
 
+        # ── Fix the mislabelled "Type" label → "Remarks:" ────────────────────
+        # label_10 sits at grid row 4 col 0 and was showing "Type" (wrong).
+        # duration_value at row 4 col 1 was receiving remarks data (correct use,
+        # wrong label). Relabel both cleanly here so the .ui file stays untouched.
+        self.ui.label_10.setText("Remarks:")
+
+        # ── Add Status and Date Created rows to the grid ──────────────────────
+        # The existing gridLayout_2 inside formWidget has rows 0-4.
+        # We append two more rows (5 and 6) for the fields that were missing
+        # vs the completed appointments screen.
+        lbl_style = (
+            "font: 10pt 'Segoe UI'; font-weight: bold;"
+            "color: rgb(26, 26, 62); border: none;"
+        )
+        val_style = (
+            "font: 10pt 'Segoe UI';"
+            "color: rgb(26, 26, 62); border: none;"
+        )
+
+        self._status_label = QLabel("Status:")
+        self._status_label.setStyleSheet(lbl_style)
+        self._status_value = QLabel("")
+        self._status_value.setStyleSheet(val_style)
+
+        self._created_label = QLabel("Date Created:")
+        self._created_label.setStyleSheet(lbl_style)
+        self._created_value = QLabel("")
+        self._created_value.setStyleSheet(val_style)
+
+        grid = self.ui.gridLayout_2
+        grid.addWidget(self._status_label,  5, 0)
+        grid.addWidget(self._status_value,  5, 1)
+        grid.addWidget(self._created_label, 6, 0)
+        grid.addWidget(self._created_value, 6, 1)
+
         self.clear_details()
         self.setup_navigation()
         self.load_patient_data()
@@ -24,16 +59,15 @@ class PatientAppointmentScreen(QMainWindow):
         self.ui.appointments_table.cellClicked.connect(self.on_row_clicked)
         self.load_logo()
         self._build_sidebar_profile()
-    
-    # -------------------------
+
+    # ─────────────────────────────────────────────────────────────────────────
     # SIDEBAR PROFILE
-    # -------------------------
+    # ─────────────────────────────────────────────────────────────────────────
     def _build_sidebar_profile(self):
         user = session.get()
         name = user["name"] if user else "User"
         role = user.get("role", "Admin") if user else "Admin"
 
-        # Avatar — clicking opens the profile dialog
         self.profile_avatar = QLabel("👤", parent=self.ui.frame)
         self.profile_avatar.setFixedSize(64, 64)
         self.profile_avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -57,11 +91,7 @@ class PatientAppointmentScreen(QMainWindow):
         self.profile_role_lbl = QLabel(role, parent=self.ui.frame)
         self.profile_role_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.profile_role_lbl.setStyleSheet(
-            """
-            color: white;
-            font-size: 11px;
-            border: none;
-            """
+            "color: white; font-size: 11px; border: none;"
         )
 
         self.profile_divider = QLabel(parent=self.ui.frame)
@@ -74,163 +104,87 @@ class PatientAppointmentScreen(QMainWindow):
             self.profile_avatar,
             self.profile_name_lbl,
             self.profile_role_lbl,
-            self.profile_divider
+            self.profile_divider,
         ):
             w.raise_()
             w.show()
 
     def _reposition_sidebar_profile(self):
         sidebar_w = self.ui.frame.width()
-        pad     = 16
-        av_size = 64
-
+        pad, av_size = 16, 64
         av_x = (sidebar_w - av_size) // 2
         av_y = 20
         self.profile_avatar.setGeometry(av_x, av_y, av_size, av_size)
-
         name_y = av_y + av_size + 8
         self.profile_name_lbl.setGeometry(pad, name_y, sidebar_w - pad * 2, 36)
-
         role_y = name_y + 24
         self.profile_role_lbl.setGeometry(pad, role_y, sidebar_w - pad * 2, 18)
-
         div_y = role_y + 18
         self.profile_divider.setGeometry(pad, div_y, sidebar_w - pad * 2, 1)
 
     def _open_profile_dialog(self):
-        from user_profile.user_profile_dialog import UserProfileDialog  # ✅ correct path
+        from user_profile.user_profile_dialog import UserProfileDialog
         dlg = UserProfileDialog(parent=self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
-            # Refresh sidebar labels if name/role changed
             user = session.get()
             if user:
                 self.profile_name_lbl.setText(user.get("name", ""))
                 self.profile_role_lbl.setText(user.get("role", ""))
 
-    # =====================================================
-    # 📏 AUTO REPOSITION SIDEBAR PROFILE ON RESIZE
-    # =====================================================
-
+    # ─────────────────────────────────────────────────────────────────────────
+    # RESIZE / LAYOUT
+    # ─────────────────────────────────────────────────────────────────────────
     def layout_sidebar(self):
         h = self.height()
-
         sidebar_w = 230
-
-        # Profile section
         self.profile_avatar.setGeometry(73, 20, 64, 64)
-
         self.profile_name_lbl.setGeometry(20, 95, 190, 30)
-
         self.profile_role_lbl.setGeometry(20, 120, 190, 20)
-
         self.profile_divider.setGeometry(15, 150, 200, 1)
-
-        # Navigation buttons
-        btn_top = 170
-        btn_h = 41
-        btn_gap = 8
-        btn_x = 10
+        btn_top, btn_h, btn_gap, btn_x = 170, 41, 8, 10
         btn_w = sidebar_w - 20
-
-        buttons = [
-            self.ui.pushButton,
-            self.ui.pushButton_2,
-            self.ui.pushButton_3,
-            self.ui.pushButton_4,
-        ]
-
-        for i, btn in enumerate(buttons):
-            btn.setGeometry(
-                btn_x,
-                btn_top + i * (btn_h + btn_gap),
-                btn_w,
-                btn_h
-            )
-
-        # Logout button
-        self.ui.pushButton_5.setGeometry(
-            btn_x,
-            h - 120,
-            btn_w,
-            btn_h
-        )
+        for i, btn in enumerate([
+            self.ui.pushButton, self.ui.pushButton_2,
+            self.ui.pushButton_3, self.ui.pushButton_4,
+        ]):
+            btn.setGeometry(btn_x, btn_top + i * (btn_h + btn_gap), btn_w, btn_h)
+        self.ui.pushButton_5.setGeometry(btn_x, h - 120, btn_w, btn_h)
 
     def layout_nav(self):
-        w = self.width()
-        h = self.height()
-
-        sidebar_w = 230
-        navbar_h = 60
-        padding = 30
-
-        # Top navbar
+        w, h = self.width(), self.height()
+        sidebar_w, navbar_h = 230, 60
         self.ui.frame_2.setGeometry(0, 0, w, navbar_h)
-
-        # Sidebar
         self.ui.frame.setGeometry(0, navbar_h, sidebar_w, h - navbar_h)
-
-        # Main content
-        self.ui.frame_3.setGeometry(
-            sidebar_w,
-            navbar_h,
-            w - sidebar_w,
-            h - navbar_h
-        )
-
-        # Sidebar buttons
-        btn_x = 20
-        btn_w = 191
-        btn_h = 41
-        gap = 10
-
+        self.ui.frame_3.setGeometry(sidebar_w, navbar_h, w - sidebar_w, h - navbar_h)
+        btn_x, btn_w, btn_h, gap = 20, 191, 41, 10
         start_y = 180
-
-        buttons = [
-            self.ui.pushButton,
-            self.ui.pushButton_2,
-            self.ui.pushButton_3,
-            self.ui.pushButton_4,
-        ]
-
-        for i, btn in enumerate(buttons):
-            btn.setGeometry(
-                btn_x,
-                start_y + i * (btn_h + gap),
-                btn_w,
-                btn_h
-            )
-
-        # Logout button pinned near bottom
-        self.ui.pushButton_5.setGeometry(
-            btn_x,
-            h - navbar_h - 70,
-            btn_w,
-            btn_h
-        )
+        for i, btn in enumerate([
+            self.ui.pushButton, self.ui.pushButton_2,
+            self.ui.pushButton_3, self.ui.pushButton_4,
+        ]):
+            btn.setGeometry(btn_x, start_y + i * (btn_h + gap), btn_w, btn_h)
+        self.ui.pushButton_5.setGeometry(btn_x, h - navbar_h - 70, btn_w, btn_h)
 
     def load_logo(self):
         from PyQt6.QtGui import QPixmap
-        from PyQt6.QtCore import Qt
         pixmap = QPixmap("Asset/MaternaDB_logo.png")
         if not pixmap.isNull():
             self.ui.label_3.setText("")
-            self.ui.label_3.setStyleSheet("")  # ✅ clear the stylesheet
+            self.ui.label_3.setStyleSheet("")
             self.ui.label_3.setPixmap(
                 pixmap.scaled(
                     40, 40,
                     Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation
+                    Qt.TransformationMode.SmoothTransformation,
                 )
             )
             self.ui.label_3.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        w = self.width()
-        h = self.height()
+        w, h = self.width(), self.height()
 
         self.ui.frame_2.setGeometry(0, 0, w, 61)
-
         sidebar_w = int(w * 0.19)
         self.ui.frame.setGeometry(0, 61, sidebar_w, h - 61)
         btn_x, btn_w = 20, sidebar_w - 30
@@ -273,24 +227,105 @@ class PatientAppointmentScreen(QMainWindow):
         self.ui.appointments_table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Stretch)
 
+        # right_details is taller now (two extra rows: Status + Date Created)
         self.ui.right_details.setGeometry(pad + left_w + 20, panels_y, right_w, panels_h)
         self.ui.label_4.setGeometry(15, 10, right_w - 20, 21)
-        self.ui.formWidget.setGeometry(15, 40, right_w - 20, 220)
-        self.ui.purpose_label.setGeometry(15, 270, right_w - 20, 18)
-        self.ui.purpose_value.setGeometry(15, 292, right_w - 20, 60)
+        self.ui.formWidget.setGeometry(15, 40, right_w - 20, 280)   # was 220, now 280
+        self.ui.purpose_label.setGeometry(15, 330, right_w - 20, 18)  # shifted down
+        self.ui.purpose_value.setGeometry(15, 352, right_w - 20, 60)  # shifted down
 
         self._reposition_sidebar_profile()
         self.layout_sidebar()
         self.layout_nav()
 
+    # ─────────────────────────────────────────────────────────────────────────
+    # DETAILS PANEL
+    # ─────────────────────────────────────────────────────────────────────────
     def clear_details(self):
+        """Reset every value label in the detail panel to blank."""
         self.ui.date_value.setText("")
         self.ui.time_value.setText("")
         self.ui.type_value.setText("")
         self.ui.doctor_value.setText("")
-        self.ui.duration_value.setText("")
+        self.ui.duration_value.setText("")   # remarks
         self.ui.purpose_value.setText("")
+        self._status_value.setText("")
+        self._created_value.setText("")
 
+    def load_details(self, appointment_id):
+        """
+        Populate the right-hand detail panel for one appointment.
+
+        Field mapping (UI widget → DB column):
+            date_value    → appointment.appointment_date
+            time_value    → appointment.appointment_time
+            type_value    → appointment.appointment_type
+            doctor_value  → staff.first_name + last_name (+ role)
+            duration_value→ appointment.remarks          ← was mislabelled "Type"
+            purpose_value → appointment_purpose rows
+            _status_value → appointment.status           ← NEW
+            _created_value→ appointment.date_created      ← NEW
+        """
+        conn = get_connection()
+        if not conn:
+            return
+        try:
+            cursor = conn.cursor()
+
+            # One query pulls everything from appointment + staff join
+            cursor.execute("""
+                SELECT a.appointment_date,
+                       a.appointment_time,
+                       a.appointment_type,
+                       s.first_name || ' ' || s.last_name
+                           || ' (' || s.role || ')' AS staff_name,
+                       a.remarks,
+                       a.status,
+                       a.date_created
+                FROM appointment a
+                JOIN staff s ON a.staff_id = s.staff_id
+                WHERE a.appointment_id = %s
+            """, (appointment_id,))
+            data = cursor.fetchone()
+
+            cursor.execute("""
+                SELECT purpose FROM appointment_purpose
+                WHERE appointment_id = %s
+                ORDER BY purpose_id
+            """, (appointment_id,))
+            purposes = [row[0] for row in cursor.fetchall()]
+
+            cursor.close()
+            conn.close()
+
+            if not data:
+                return
+
+            (appt_date, appt_time, appt_type,
+             staff_name, remarks, status, date_created) = data
+
+            date_str    = appt_date.strftime("%B %d, %Y")    if appt_date    else "—"
+            time_str    = str(appt_time)[:5]                  if appt_time    else "—"
+            created_str = date_created.strftime("%B %d, %Y") if date_created else "—"
+
+            # Bind to UI widgets
+            self.ui.date_value.setText(date_str)
+            self.ui.time_value.setText(time_str)
+            self.ui.type_value.setText(appt_type or "—")
+            self.ui.doctor_value.setText(staff_name or "—")
+            self.ui.duration_value.setText(remarks or "—")   # Remarks field
+            self.ui.purpose_value.setText(
+                ", ".join(purposes) if purposes else "—"
+            )
+            self._status_value.setText(status or "—")
+            self._created_value.setText(created_str)
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to load details:\n{e}")
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # NAVIGATION SETUP
+    # ─────────────────────────────────────────────────────────────────────────
     def setup_navigation(self):
         try:
             self.ui.pushButton.clicked.connect(self.go_to_dashboard)
@@ -308,6 +343,9 @@ class PatientAppointmentScreen(QMainWindow):
         except Exception as e:
             print("Navigation error:", e)
 
+    # ─────────────────────────────────────────────────────────────────────────
+    # DATA LOADERS
+    # ─────────────────────────────────────────────────────────────────────────
     def load_patient_data(self):
         conn = get_connection()
         if not conn:
@@ -347,6 +385,13 @@ class PatientAppointmentScreen(QMainWindow):
             QMessageBox.critical(self, "Error", f"Failed to load patient:\n{e}")
 
     def load_appointments(self):
+        """
+        List only Completed appointments for this patient.
+        These are the same records shown in CompletedAppointmentsScreen,
+        filtered to the specific patient — enforcing the rule that a patient
+        must exist in patient_profile before any appointment can be saved
+        (FK constraint: appointment.patient_id → patient_profile.patient_id).
+        """
         conn = get_connection()
         if not conn:
             return
@@ -356,11 +401,8 @@ class PatientAppointmentScreen(QMainWindow):
                 SELECT a.appointment_id,
                        a.appointment_date,
                        a.appointment_time,
-                       a.appointment_type,
-                       s.first_name || ' ' || s.last_name AS staff_name,
-                       a.remarks
+                       a.appointment_type
                 FROM appointment a
-                JOIN staff s ON a.staff_id = s.staff_id
                 WHERE a.patient_id = %s
                   AND a.status = 'Completed'
                 ORDER BY a.appointment_date DESC, a.appointment_time DESC
@@ -376,14 +418,14 @@ class PatientAppointmentScreen(QMainWindow):
 
             for row_data in rows:
                 appointment_id = row_data[0]
-                date           = row_data[1].strftime("%B %d, %Y") if row_data[1] else ""
-                time           = str(row_data[2])[:5] if row_data[2] else ""
-                appt_type      = row_data[3] or ""
+                date      = row_data[1].strftime("%B %d, %Y") if row_data[1] else ""
+                time      = str(row_data[2])[:5] if row_data[2] else ""
+                appt_type = row_data[3] or ""
 
                 row_index = tbl.rowCount()
                 tbl.insertRow(row_index)
 
-                # Store appointment_id in the date item for later retrieval
+                # Store appointment_id in the date cell for on_row_clicked
                 date_item = QTableWidgetItem(date)
                 date_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 date_item.setData(Qt.ItemDataRole.UserRole, appointment_id)
@@ -415,51 +457,9 @@ class PatientAppointmentScreen(QMainWindow):
             appointment_id = item.data(Qt.ItemDataRole.UserRole)
             self.load_details(appointment_id)
 
-    def load_details(self, appointment_id):
-        conn = get_connection()
-        if not conn:
-            return
-        try:
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT a.appointment_date,
-                       a.appointment_time,
-                       a.appointment_type,
-                       s.first_name || ' ' || s.last_name,
-                       a.remarks
-                FROM appointment a
-                JOIN staff s ON a.staff_id = s.staff_id
-                WHERE a.appointment_id = %s
-            """, (appointment_id,))
-            data = cursor.fetchone()
-
-            cursor.execute("""
-                SELECT purpose FROM appointment_purpose
-                WHERE appointment_id = %s
-            """, (appointment_id,))
-            purposes = [row[0] for row in cursor.fetchall()]
-            cursor.close()
-            conn.close()
-
-            if not data:
-                return
-
-            date    = data[0].strftime("%B %d, %Y") if data[0] else ""
-            time    = str(data[1])[:5] if data[1] else ""
-            remarks = data[4] or ""
-
-            self.ui.date_value.setText(date)
-            self.ui.time_value.setText(time)
-            self.ui.type_value.setText(data[2] or "")
-            self.ui.doctor_value.setText(data[3] or "")
-            self.ui.duration_value.setText(remarks)
-            self.ui.purpose_value.setText(
-                ", ".join(purposes) if purposes else "—")
-
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load details:\n{e}")
-
-    # ── Outer navigation ──────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
+    # OUTER NAVIGATION
+    # ─────────────────────────────────────────────────────────────────────────
     def go_to_dashboard(self):
         from screens.dashboard_screen import DashboardScreen
         self.new_window = DashboardScreen()
@@ -490,7 +490,9 @@ class PatientAppointmentScreen(QMainWindow):
         self.new_window.showMaximized()
         self.close()
 
-    # ── Inner navigation ──────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
+    # INNER (PATIENT RECORD TAB) NAVIGATION
+    # ─────────────────────────────────────────────────────────────────────────
     def go_to_patient_profile(self):
         from screens.patient_profile_screen import PatientProfileScreen
         self.new_window = PatientProfileScreen(self.patient_id)

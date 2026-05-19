@@ -34,7 +34,6 @@ class CompletedAppointmentsScreen(QMainWindow):
         from PyQt6.QtGui import QPixmap
         pixmap = QPixmap("Asset/MaternaDB_logo.png")
         if not pixmap.isNull():
-            # label_9 is the logo slot in the completed_appointments UI header
             self.ui.label_9.setText("")
             self.ui.label_9.setStyleSheet("")
             self.ui.label_9.setPixmap(
@@ -46,24 +45,15 @@ class CompletedAppointmentsScreen(QMainWindow):
             )
             self.ui.label_9.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-    # ── Sidebar profile — inserted into the sidebar's own QVBoxLayout ─────────
+    # ── Sidebar profile ───────────────────────────────────────────────────────
     def _inject_sidebar_profile(self):
-        """
-        The completed_appointments UI sidebar has a QVBoxLayout that starts
-        with label_10 (a 'LOGO' placeholder) then the nav buttons.
-        We remove label_10 and insert the real profile widgets in its place
-        so the layout manager handles all positioning — no setGeometry needed.
-        """
         user = session.get()
         name = user["name"] if user else "User"
         role = user.get("role", "Admin") if user else "Admin"
 
-        sidebar_layout = self.ui.frame.layout()   # existing QVBoxLayout
-
-        # Remove the placeholder label_10 that the UI put at index 0
+        sidebar_layout = self.ui.frame.layout()
         self.ui.label_10.setParent(None)
 
-        # ── Avatar ────────────────────────────────────────────────────────────
         self.profile_avatar = QLabel("👤")
         self.profile_avatar.setFixedSize(64, 64)
         self.profile_avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -74,7 +64,6 @@ class CompletedAppointmentsScreen(QMainWindow):
         self.profile_avatar.setCursor(Qt.CursorShape.PointingHandCursor)
         self.profile_avatar.mousePressEvent = lambda _: self._open_profile_dialog()
 
-        # ── Name ──────────────────────────────────────────────────────────────
         self.profile_name_lbl = QLabel(name)
         self.profile_name_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.profile_name_lbl.setWordWrap(True)
@@ -85,21 +74,18 @@ class CompletedAppointmentsScreen(QMainWindow):
             "background: transparent; border: none;"
         )
 
-        # ── Role ──────────────────────────────────────────────────────────────
         self.profile_role_lbl = QLabel(role)
         self.profile_role_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.profile_role_lbl.setStyleSheet(
             "color: white; font-size: 11px; border: none;"
         )
 
-        # ── Divider ───────────────────────────────────────────────────────────
         self.profile_divider = QLabel()
         self.profile_divider.setFixedHeight(1)
         self.profile_divider.setStyleSheet(
             "background-color: rgba(255,255,255,0.2); border: none;"
         )
 
-        # Insert at index 0 (where label_10 was), pushing buttons down
         sidebar_layout.insertWidget(0, self.profile_divider)
         sidebar_layout.insertWidget(0, self.profile_role_lbl)
         sidebar_layout.insertWidget(0, self.profile_name_lbl)
@@ -114,8 +100,6 @@ class CompletedAppointmentsScreen(QMainWindow):
             if user:
                 self.profile_name_lbl.setText(user.get("name", ""))
                 self.profile_role_lbl.setText(user.get("role", ""))
-
-    # ── No resizeEvent needed — Qt layouts handle everything ──────────────────
 
     # ── Navigation ────────────────────────────────────────────────────────────
     def setup_navigation(self):
@@ -138,6 +122,7 @@ class CompletedAppointmentsScreen(QMainWindow):
         self.ui.widget.show()
         self.ui.widget_5.show()
 
+    # ── Main appointment list ─────────────────────────────────────────────────
     def load_appointments(self):
         conn = get_connection()
         if not conn:
@@ -194,6 +179,7 @@ class CompletedAppointmentsScreen(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load appointments:\n{e}")
 
+    # ── Detail panel ──────────────────────────────────────────────────────────
     def load_details(self, appointment_id):
         self.current_appointment_id = appointment_id
         conn = get_connection()
@@ -201,47 +187,106 @@ class CompletedAppointmentsScreen(QMainWindow):
             return
         try:
             cursor = conn.cursor()
+
+            # Fetch all appointment fields + staff name in one query.
+            # Every column here corresponds to a field in one of the two dialogs:
+            #   patient_name, date, time, type  → Add dialog
+            #   status, staff_name, date_created → Edit dialog info panel
+            #   remarks                          → both dialogs
             cursor.execute("""
-                SELECT pp.first_name || ' ' || pp.last_name,
+                SELECT pp.first_name || ' ' || pp.last_name          AS patient_name,
                        a.appointment_date,
                        a.appointment_time,
                        a.appointment_type,
                        a.status,
                        a.remarks,
-                       a.patient_id
+                       a.patient_id,
+                       a.date_created,
+                       s.first_name || ' ' || s.last_name
+                           || ' (' || s.role || ')'                  AS staff_name
                 FROM appointment a
                 JOIN patient_profile pp ON a.patient_id = pp.patient_id
+                JOIN staff           s  ON a.staff_id   = s.staff_id
                 WHERE a.appointment_id = %s
             """, (appointment_id,))
             data = cursor.fetchone()
 
+            # Purposes — one row per purpose, entered in Add dialog
             cursor.execute("""
                 SELECT purpose FROM appointment_purpose
                 WHERE appointment_id = %s
+                ORDER BY purpose_id
             """, (appointment_id,))
             purposes = [row[0] for row in cursor.fetchall()]
+
+            # Status history — each Edit dialog save appends one row:
+            #   status     → New Status combo
+            #   reason     → Reason for Status Change text
+            #   updated_by → Updated By combo
+            cursor.execute("""
+                SELECT ash.status,
+                       ash.status_date,
+                       ash.reason,
+                       COALESCE(s.first_name || ' ' || s.last_name, 'System') AS updated_by
+                FROM appointment_status_history ash
+                LEFT JOIN staff s ON ash.updated_by = s.staff_id
+                WHERE ash.appointment_id = %s
+                ORDER BY ash.status_date ASC, ash.status_history_id ASC
+            """, (appointment_id,))
+            history_rows = cursor.fetchall()
+
             cursor.close()
             conn.close()
 
             if not data:
                 return
 
-            date = data[1].strftime("%B %d, %Y") if data[1] else ""
-            time = str(data[2])[:5] if data[2] else ""
+            (patient_name, appt_date, appt_time, appt_type,
+             status, remarks, patient_id, date_created, staff_name) = data
 
-            self.ui.label_3.setText(f"<b>Patient:</b> {data[0]}")
-            self.ui.label_4.setText(f"<b>Date:</b> {date}")
-            self.ui.label_5.setText(f"<b>Type of Visit:</b> {data[3]}")
-            self.ui.label_6.setText(f"<b>Time:</b> {time}")
-            self.ui.textEdit.setPlainText(", ".join(purposes) if purposes else "")
-            self.ui.textEdit_2.setPlainText(data[5] or "")
+            date_str    = appt_date.strftime("%B %d, %Y")    if appt_date    else "—"
+            time_str    = str(appt_time)[:5]                  if appt_time    else "—"
+            created_str = date_created.strftime("%B %d, %Y") if date_created else "—"
 
-            self.current_patient_id = data[6]
+            # ── Left column ───────────────────────────────────────────────────
+            self.ui.label_3.setText(f"<b>Patient:</b> {patient_name}")
+            self.ui.label_4.setText(f"<b>Date:</b> {date_str}")
+            self.ui.label_6.setText(f"<b>Time:</b> {time_str}")
+            self.ui.label_5.setText(f"<b>Type of Visit:</b> {appt_type}")
+            self.ui.label_status.setText(f"<b>Status:</b> {status}")
+            self.ui.label_staff.setText(f"<b>Assigned Staff:</b> {staff_name}")
+            self.ui.label_date_created.setText(f"<b>Date Created:</b> {created_str}")
+
+            # ── Middle column ─────────────────────────────────────────────────
+            self.ui.textEdit.setPlainText(
+                ", ".join(purposes) if purposes else "—"
+            )
+            self.ui.textEdit_2.setPlainText(remarks or "—")
+
+            # ── Right column: status history ──────────────────────────────────
+            # [MMM DD, YYYY]  STATUS — reason  (by Staff Name)
+            history_lines = []
+            for h in history_rows:
+                h_status = h[0]
+                h_date   = h[1].strftime("%b %d, %Y") if h[1] else "—"
+                h_reason = f"  —  {h[2]}" if h[2] else ""
+                h_by     = h[3]
+                history_lines.append(
+                    f"[{h_date}]  {h_status}{h_reason}  (by {h_by})"
+                )
+
+            self.ui.textEdit_3.setPlainText(
+                "\n".join(history_lines) if history_lines
+                else "No status history recorded."
+            )
+
+            self.current_patient_id = patient_id
             self._show_details()
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load details:\n{e}")
 
+    # ── Actions ───────────────────────────────────────────────────────────────
     def open_new_appointment(self):
         from Dialog.add_appointment_dialog import AddAppointmentDialog
         dialog = AddAppointmentDialog(parent=self)
@@ -268,6 +313,7 @@ class CompletedAppointmentsScreen(QMainWindow):
         self.new_window.showMaximized()
         self.close()
 
+    # ── Screen navigation ─────────────────────────────────────────────────────
     def go_back(self):
         from screens.appointments_screen import AppointmentsScreen
         self.new_window = AppointmentsScreen()

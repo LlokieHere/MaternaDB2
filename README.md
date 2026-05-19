@@ -1,7 +1,7 @@
 NEED TO FINISH:
 - whole prenatal care module
 - Finalize Database
-- Log in because the relationship has updated
+
 
 # MATERNADB: Integrated Maternal Health Information System
 

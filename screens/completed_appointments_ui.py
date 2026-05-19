@@ -1,4 +1,4 @@
-# completed_appointments.py — responsive layout version
+# completed_appointments_ui.py — updated with all dialog fields displayed
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 
@@ -161,7 +161,7 @@ class Ui_MainWindow(object):
         top_row.addWidget(self.pushButton_6)
         content_layout.addLayout(top_row)
 
-        # -- Table (flat border, no rounded corners) --------------------------
+        # -- Table ------------------------------------------------------------
         self.left_prescription_date_and_purpose = QtWidgets.QTableWidget(
             parent=self.frame_3
         )
@@ -239,22 +239,28 @@ class Ui_MainWindow(object):
         vh.setCascadingSectionResizes(False)
         vh.setDefaultSectionSize(40)
 
+        # Table gets stretch=1 so it takes all available space above the panel
         content_layout.addWidget(self.left_prescription_date_and_purpose, stretch=1)
 
-        # -- Details panel ----------------------------------------------------
+        # ── Details panel (widget) ───────────────────────────────────────────
         self.widget = QtWidgets.QWidget(parent=self.frame_3)
         self.widget.setStyleSheet(
             "background-color: rgb(236, 198, 220);"
             "border-radius: 10px;"
         )
         self.widget.setObjectName("widget")
+        # Cap height so the panel only takes as much space as its contents need
+        self.widget.setMaximumHeight(320)
+        self.widget.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Maximum,
+        )
 
-        # FIX: top margin increased to 20 so the groupBox title is not clipped
         widget_layout = QtWidgets.QVBoxLayout(self.widget)
-        widget_layout.setContentsMargins(10, 20, 10, 10)
-        widget_layout.setSpacing(8)
+        widget_layout.setContentsMargins(10, 10, 10, 8)
+        widget_layout.setSpacing(4)
 
-        # GroupBox
+        # ── GroupBox ─────────────────────────────────────────────────────────
         self.groupBox = QtWidgets.QGroupBox(parent=self.widget)
         font_bold = QtGui.QFont()
         font_bold.setBold(True)
@@ -262,134 +268,148 @@ class Ui_MainWindow(object):
         self.groupBox.setStyleSheet("background-color: rgb(236, 198, 220);")
         self.groupBox.setObjectName("groupBox")
 
-        # FIX: top margin increased to 20 so the groupBox title text clears the border
         groupbox_layout = QtWidgets.QHBoxLayout(self.groupBox)
-        groupbox_layout.setContentsMargins(9, 20, 9, 9)
-        groupbox_layout.setSpacing(12)
+        groupbox_layout.setContentsMargins(9, 12, 9, 6)
+        groupbox_layout.setSpacing(8)
 
-        # Left column: Patient / Date / Time / Status labels
+        # ── LEFT COLUMN: all appointment meta fields ─────────────────────────
         self.widget_2 = QtWidgets.QWidget(parent=self.groupBox)
         self.widget_2.setObjectName("widget_2")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.widget_2)
-        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        left_col = QtWidgets.QVBoxLayout(self.widget_2)
+        left_col.setContentsMargins(0, 0, 0, 0)
+        left_col.setSpacing(0)
 
+        def _divider(parent):
+            f = QtWidgets.QFrame(parent=parent)
+            f.setFrameShape(QtWidgets.QFrame.Shape.HLine)
+            f.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+            return f
+
+        # Patient
         self.label_3 = QtWidgets.QLabel(parent=self.widget_2)
         self.label_3.setObjectName("label_3")
-        self.verticalLayout_2.addWidget(self.label_3)
+        left_col.addWidget(self.label_3)
+        left_col.addWidget(_divider(self.widget_2))
 
-        self.frame_4 = QtWidgets.QFrame(parent=self.widget_2)
-        self.frame_4.setFrameShape(QtWidgets.QFrame.Shape.HLine)
-        self.frame_4.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
-        self.frame_4.setObjectName("frame_4")
-        self.verticalLayout_2.addWidget(self.frame_4)
-
+        # Date
         self.label_4 = QtWidgets.QLabel(parent=self.widget_2)
         self.label_4.setObjectName("label_4")
-        self.verticalLayout_2.addWidget(self.label_4)
+        left_col.addWidget(self.label_4)
+        left_col.addWidget(_divider(self.widget_2))
 
-        self.frame_5 = QtWidgets.QFrame(parent=self.widget_2)
-        self.frame_5.setFrameShape(QtWidgets.QFrame.Shape.HLine)
-        self.frame_5.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
-        self.frame_5.setObjectName("frame_5")
-        self.verticalLayout_2.addWidget(self.frame_5)
-
-        self.label_5 = QtWidgets.QLabel(parent=self.widget_2)
-        self.label_5.setObjectName("label_5")
-        self.verticalLayout_2.addWidget(self.label_5)
-
-        self.frame_6 = QtWidgets.QFrame(parent=self.widget_2)
-        self.frame_6.setFrameShape(QtWidgets.QFrame.Shape.HLine)
-        self.frame_6.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
-        self.frame_6.setObjectName("frame_6")
-        self.verticalLayout_2.addWidget(self.frame_6)
-
+        # Time
         self.label_6 = QtWidgets.QLabel(parent=self.widget_2)
         self.label_6.setObjectName("label_6")
-        self.verticalLayout_2.addWidget(self.label_6)
+        left_col.addWidget(self.label_6)
+        left_col.addWidget(_divider(self.widget_2))
 
-        self.frame_7 = QtWidgets.QFrame(parent=self.widget_2)
-        self.frame_7.setFrameShape(QtWidgets.QFrame.Shape.HLine)
-        self.frame_7.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
-        self.frame_7.setObjectName("frame_7")
-        self.verticalLayout_2.addWidget(self.frame_7)
+        # Type of Visit
+        self.label_5 = QtWidgets.QLabel(parent=self.widget_2)
+        self.label_5.setObjectName("label_5")
+        left_col.addWidget(self.label_5)
+        left_col.addWidget(_divider(self.widget_2))
 
-        # Middle column: Vital Signs
+        # Status
+        self.label_status = QtWidgets.QLabel(parent=self.widget_2)
+        self.label_status.setObjectName("label_status")
+        left_col.addWidget(self.label_status)
+        left_col.addWidget(_divider(self.widget_2))
+
+        # Assigned Staff
+        self.label_staff = QtWidgets.QLabel(parent=self.widget_2)
+        self.label_staff.setObjectName("label_staff")
+        self.label_staff.setWordWrap(True)
+        left_col.addWidget(self.label_staff)
+        left_col.addWidget(_divider(self.widget_2))
+
+        # Date Created
+        self.label_date_created = QtWidgets.QLabel(parent=self.widget_2)
+        self.label_date_created.setObjectName("label_date_created")
+        left_col.addWidget(self.label_date_created)
+
+        left_col.addStretch(1)
+
+        # ── MIDDLE COLUMN: Purposes + Remarks ─────────────────────────────────
         self.widget_3 = QtWidgets.QWidget(parent=self.groupBox)
         self.widget_3.setObjectName("widget_3")
-        self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.widget_3)
-        self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        mid_col = QtWidgets.QVBoxLayout(self.widget_3)
+        mid_col.setContentsMargins(0, 0, 0, 0)
+        mid_col.setSpacing(4)
 
         self.label_7 = QtWidgets.QLabel(parent=self.widget_3)
         self.label_7.setObjectName("label_7")
-        self.verticalLayout_3.addWidget(self.label_7)
+        mid_col.addWidget(self.label_7)
 
         self.textEdit = QtWidgets.QTextEdit(parent=self.widget_3)
+        self.textEdit.setReadOnly(True)
         self.textEdit.setObjectName("textEdit")
-        self.verticalLayout_3.addWidget(self.textEdit)
+        mid_col.addWidget(self.textEdit, stretch=1)
 
-        # Right column: Notes
+        self.label_8 = QtWidgets.QLabel(parent=self.widget_3)
+        self.label_8.setObjectName("label_8")
+        mid_col.addWidget(self.label_8)
+
+        self.textEdit_2 = QtWidgets.QTextEdit(parent=self.widget_3)
+        self.textEdit_2.setReadOnly(True)
+        self.textEdit_2.setObjectName("textEdit_2")
+        mid_col.addWidget(self.textEdit_2, stretch=1)
+
+        # ── RIGHT COLUMN: Status History ──────────────────────────────────────
         self.widget_4 = QtWidgets.QWidget(parent=self.groupBox)
         self.widget_4.setObjectName("widget_4")
-        self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.widget_4)
-        self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_4.setObjectName("verticalLayout_4")
+        right_col = QtWidgets.QVBoxLayout(self.widget_4)
+        right_col.setContentsMargins(0, 0, 0, 0)
+        right_col.setSpacing(4)
 
-        self.label_8 = QtWidgets.QLabel(parent=self.widget_4)
-        self.label_8.setObjectName("label_8")
-        self.verticalLayout_4.addWidget(self.label_8)
+        self.label_history = QtWidgets.QLabel(parent=self.widget_4)
+        self.label_history.setObjectName("label_history")
+        right_col.addWidget(self.label_history)
 
-        self.textEdit_2 = QtWidgets.QTextEdit(parent=self.widget_4)
-        self.textEdit_2.setObjectName("textEdit_2")
-        self.verticalLayout_4.addWidget(self.textEdit_2)
+        self.textEdit_3 = QtWidgets.QTextEdit(parent=self.widget_4)
+        self.textEdit_3.setReadOnly(True)
+        self.textEdit_3.setObjectName("textEdit_3")
+        right_col.addWidget(self.textEdit_3, stretch=1)
 
+        # Assemble three columns: left slightly wider for labels
         groupbox_layout.addWidget(self.widget_2, stretch=3)
         groupbox_layout.addWidget(self.widget_3, stretch=2)
         groupbox_layout.addWidget(self.widget_4, stretch=2)
 
         widget_layout.addWidget(self.groupBox, stretch=1)
 
-        # Button row below the groupBox
+        # ── Action buttons below the groupBox ────────────────────────────────
         self.widget_5 = QtWidgets.QWidget(parent=self.widget)
         self.widget_5.setObjectName("widget_5")
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.widget_5)
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout.setObjectName("horizontalLayout")
+        btn_row_layout = QtWidgets.QHBoxLayout(self.widget_5)
+        btn_row_layout.setContentsMargins(0, 0, 0, 0)
+        btn_row_layout.setObjectName("horizontalLayout")
 
         self.pushButton_8 = QtWidgets.QPushButton(parent=self.widget_5)
         self.pushButton_8.setStyleSheet(
             "background-color: rgb(156, 39, 176);"
-            "color: white;"
-            "border: none;"
-            "padding: 8px 16px;"
-            "font-weight: bold;"
-            "border-radius: 12px;"
+            "color: white; border: none;"
+            "padding: 8px 16px; font-weight: bold; border-radius: 12px;"
         )
         self.pushButton_8.setObjectName("pushButton_8")
-        self.horizontalLayout.addWidget(self.pushButton_8)
+        btn_row_layout.addWidget(self.pushButton_8)
 
         self.pushButton_9 = QtWidgets.QPushButton(parent=self.widget_5)
         self.pushButton_9.setStyleSheet(
-            "background-color: #98719D;"
-            "color: black;"
-            "border: none;"
-            "padding: 8px 16px;"
-            "font-weight: bold;"
-            "border-radius: 12px;"
+            "background-color: #98719D; color: black; border: none;"
+            "padding: 8px 16px; font-weight: bold; border-radius: 12px;"
         )
         self.pushButton_9.setObjectName("pushButton_9")
-        self.horizontalLayout.addWidget(self.pushButton_9)
-        self.horizontalLayout.addStretch(1)
+        btn_row_layout.addWidget(self.pushButton_9)
+        btn_row_layout.addStretch(1)
 
         widget_layout.addWidget(self.widget_5)
 
-        content_layout.addWidget(self.widget, stretch=2)
+        # No stretch on the details panel — it sizes to its content (max 320px)
+        content_layout.addWidget(self.widget)
 
         # ── Assemble bottom area ─────────────────────────────────────────────
         bottom_layout.addWidget(self.frame)
         bottom_layout.addWidget(self.frame_3, stretch=1)
-
         root_layout.addWidget(bottom_widget, stretch=1)
 
         MainWindow.setCentralWidget(self.centralwidget)
@@ -435,14 +455,23 @@ class Ui_MainWindow(object):
             item.setText(_translate("MainWindow", text))
 
         self.groupBox.setTitle(_translate("MainWindow", "Appointment Details"))
+
+        # Left column labels
         self.label_3.setText(_translate("MainWindow", "<b>Patient:</b>"))
         self.label_4.setText(_translate("MainWindow", "<b>Date:</b>"))
-        self.label_5.setText(_translate("MainWindow", "<b>Time:</b>"))
-        self.label_6.setText(_translate("MainWindow", "<b>Status:</b>"))
-        self.label_7.setText(_translate(
-            "MainWindow",
-            "<html><head/><body><p><span style=\" font-weight:700;\">Vital Signs:</span></p></body></html>"
-        ))
-        self.label_8.setText(_translate("MainWindow", "<b>Notes:</b>"))
+        self.label_6.setText(_translate("MainWindow", "<b>Time:</b>"))
+        self.label_5.setText(_translate("MainWindow", "<b>Type of Visit:</b>"))
+        self.label_status.setText(_translate("MainWindow", "<b>Status:</b>"))
+        self.label_staff.setText(_translate("MainWindow", "<b>Assigned Staff:</b>"))
+        self.label_date_created.setText(_translate("MainWindow", "<b>Date Created:</b>"))
+
+        # Middle column labels
+        self.label_7.setText(_translate("MainWindow", "<b>Purposes:</b>"))
+        self.label_8.setText(_translate("MainWindow", "<b>Remarks:</b>"))
+
+        # Right column label
+        self.label_history.setText(_translate("MainWindow", "<b>Status History:</b>"))
+
+        # Buttons
         self.pushButton_8.setText(_translate("MainWindow", "Schedule Follow-up"))
         self.pushButton_9.setText(_translate("MainWindow", "View Full Record"))

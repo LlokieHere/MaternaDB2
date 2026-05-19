@@ -21,30 +21,28 @@ class AddPastPregnancyDialog(QDialog):
         self.ui.cancel_btn_2.clicked.connect(self.reject)
 
     def save(self):
-        # ── Gather values ─────────────────────────────────────
         delivery_date  = self.ui.delivery_dat_placeholder.date().toPyDate()
-        delivery_type  = self.ui.delivery_date_placeholder.text().strip()  # delivery type field
+        delivery_type  = self.ui.delivery_date_placeholder.currentText().strip()  # ← was .text()
         presentation   = self.ui.presentation_placeholder.text().strip()
         complications  = self.ui.complication_placeholder.text().strip()
         baby_weight    = self.ui.baby_weight_placeholder.text().strip()
         outcome        = self.ui.comboBox.currentText()
         episiotomy     = self.ui.Episiotomy_placeholder.currentText() == "Yes"
 
-        # ── Validate required fields ──────────────────────────
-        if not delivery_type:
-            QMessageBox.warning(self, "Missing Field", "Please enter the delivery type.")
-            return
+        # delivery_type is always filled (combo has a default), so remove the empty check
+        # and replace with just using the value directly
 
-        if baby_weight and not baby_weight.isdigit():
-            QMessageBox.warning(self, "Invalid Input", "Baby weight must be a number (grams).")
-            return
+        if baby_weight:
+            try:
+                baby_weight_val = float(baby_weight)
+            except ValueError:
+                QMessageBox.warning(self, "Invalid Input", "Baby weight must be a number (e.g. 3.2).")
+                return
+        else:
+            baby_weight_val = None
 
-        baby_weight_val = int(baby_weight) if baby_weight else None
-
-        # ── Calculate GPAL from existing records + this new one ──
         gravida, para, abortion, living = self.calculate_gpal_with_new(outcome)
 
-        # ── Insert into DB ────────────────────────────────────
         conn = get_connection()
         if not conn:
             QMessageBox.critical(self, "DB Error", "Cannot connect to database.")
@@ -54,38 +52,18 @@ class AddPastPregnancyDialog(QDialog):
             cursor = conn.cursor()
             cursor.execute("""
                 INSERT INTO past_pregnancy (
-                    patient_id,
-                    gravida,
-                    para,
-                    abortion,
-                    living_children,
-                    last_delivery_date,
-                    delivery_type,
-                    presentation,
-                    episiotomy,
-                    complications,
-                    baby_weight,
-                    outcome
+                    patient_id, gravida, para, abortion, living_children,
+                    last_delivery_date, delivery_type, presentation,
+                    episiotomy, complications, baby_weight, outcome
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
-                self.patient_id,
-                gravida,
-                para,
-                abortion,
-                living,
-                delivery_date,
-                delivery_type,
-                presentation,
-                episiotomy,
-                complications,
-                baby_weight_val,
-                outcome
+                self.patient_id, gravida, para, abortion, living,
+                delivery_date, delivery_type, presentation,
+                episiotomy, complications, baby_weight_val, outcome
             ))
-
             conn.commit()
             cursor.close()
             conn.close()
-
             QMessageBox.information(self, "Success", "Pregnancy record added successfully!")
             self.accept()
 

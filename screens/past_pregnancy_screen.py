@@ -374,6 +374,7 @@ class pastPregnancyScreen(QMainWindow):
             cursor.execute(query, (self.patient_id,))
             result = cursor.fetchone()
             cursor.close()
+            self._build_patient_avatar(full_name)
 
             if result:
                 age = result[0]  # extract value from tuple
@@ -382,9 +383,35 @@ class pastPregnancyScreen(QMainWindow):
                 self.ui.age_placeholder.setText("N/A")
             cursor.close()
             conn.close()
+            
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load profile:\n{e}")
+
+    def _build_patient_avatar(self, full_name: str):
+        from PyQt6.QtGui import QPainter, QColor, QBrush, QPen, QFont
+
+        # Generate initials
+        parts    = full_name.strip().split()
+        initials = ""
+        if len(parts) == 1:
+            initials = parts[0][0].upper()
+        elif len(parts) >= 2:
+            initials = parts[0][0].upper() + parts[-1][0].upper()
+
+        # Create avatar label inside frame_5
+        avatar = QLabel(initials, parent=self.ui.frame_5)
+        avatar.setGeometry(0, 0, self.ui.frame_5.width(), self.ui.frame_5.height())
+        avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        avatar.setStyleSheet(
+            "background-color: rgb(192, 116, 182);"
+            "color: white;"
+            "font-size: 32px;"
+            "font-weight: bold;"
+            "border-radius: 6px;"
+            "border: none;"
+        )
+        avatar.show()
 
     def load_past_pregnancy_data(self):
         conn = get_connection()

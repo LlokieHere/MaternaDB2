@@ -139,6 +139,31 @@ class PrescriptionScreen(QMainWindow):
 
         self.ui.pushButton_5.setGeometry(btn_x, h - 120, btn_w, btn_h)
 
+    def _build_patient_avatar(self, full_name: str):
+        from PyQt6.QtGui import QPainter, QColor, QBrush, QPen, QFont
+
+        # Generate initials
+        parts    = full_name.strip().split()
+        initials = ""
+        if len(parts) == 1:
+            initials = parts[0][0].upper()
+        elif len(parts) >= 2:
+            initials = parts[0][0].upper() + parts[-1][0].upper()
+
+        # Create avatar label inside frame_5
+        avatar = QLabel(initials, parent=self.ui.frame_5)
+        avatar.setGeometry(0, 0, self.ui.frame_5.width(), self.ui.frame_5.height())
+        avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        avatar.setStyleSheet(
+            "background-color: rgb(192, 116, 182);"
+            "color: white;"
+            "font-size: 32px;"
+            "font-weight: bold;"
+            "border-radius: 6px;"
+            "border: none;"
+        )
+        avatar.show()
+    
     def layout_nav(self):
         w = self.width()
         h = self.height()
@@ -277,6 +302,8 @@ class PrescriptionScreen(QMainWindow):
             self.ui.placeholder_age.setText(
                 str(int(age_result[0])) if age_result and age_result[0] else "—"
             )
+
+            self._build_patient_avatar(full_name)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load patient:\n{e}")
         finally:

@@ -129,16 +129,39 @@ class PregnancyCard(QWidget):
 
 
 class NewPregnancyDialog(QDialog):
-    STATUSES = ["Active", "Delivered", "Lost"]
+    STATUSES = ["Ongoing", "Completed"]
 
     def __init__(self, patient_id: int, next_num: int, parent=None):
         super().__init__(parent)
         self.patient_id = patient_id
         self.next_num = next_num
+        self._staff_list = []   # will hold (staff_id, display_name) tuples
         self.setWindowTitle(f"Add Pregnancy #{next_num}")
         self.setMinimumWidth(380)
         self.setStyleSheet("QDialog { background-color: rgb(240,230,240); }")
+        self._load_staff()
         self._build()
+
+    def _load_staff(self):
+        from database import get_connection
+        conn = get_connection()
+        if not conn:
+            return
+        try:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT staff_id,
+                    CONCAT(first_name, ' ', last_name, ' (', role, ')')
+                FROM staff
+                WHERE status = 'Active'
+                ORDER BY last_name, first_name
+            """)
+            self._staff_list = cur.fetchall()
+            conn.close()
+        except Exception as e:
+            print(f"load staff error: {e}")
+            if conn:
+                conn.close()
 
     def _build(self):
         lay = QVBoxLayout(self)
@@ -156,6 +179,7 @@ class NewPregnancyDialog(QDialog):
         lay.addWidget(sep)
 
         fs = "border: 1px solid rgb(158,136,163); border-radius: 6px; padding: 5px 8px; background-color: rgb(247,247,247); color: rgb(21,23,61); font-size: 12px;"
+        cs = "QComboBox { background-color: rgb(247,247,247); border: 1px solid rgb(158,136,163); border-radius: 6px; padding: 5px 8px; color: rgb(21,23,61); font-size: 12px; }"
         ls = "color: rgb(21,23,61); font-size: 12px;"
         form = QFormLayout(); form.setSpacing(10)
 
@@ -166,9 +190,24 @@ class NewPregnancyDialog(QDialog):
         self.f_edd.setDate(QDate.currentDate().addDays(280)); self.f_edd.setStyleSheet(fs)
 
         self.f_status = QComboBox(); self.f_status.addItems(self.STATUSES)
-        self.f_status.setStyleSheet("QComboBox { background-color: rgb(247,247,247); border: 1px solid rgb(158,136,163); border-radius: 6px; padding: 5px 8px; color: rgb(21,23,61); font-size: 12px; }")
+        self.f_status.setStyleSheet(cs)
 
-        for text, widget in [("Start Date", self.f_start), ("EDD (Due Date)", self.f_edd), ("Status", self.f_status)]:
+        # ── staff dropdown ──────────────────────────────────────────────
+        self.f_staff = QComboBox()
+        self.f_staff.setStyleSheet(cs)
+        if self._staff_list:
+            for sid, name in self._staff_list:
+                self.f_staff.addItem(name, userData=sid)
+        else:
+            self.f_staff.addItem("No staff found", userData=None)
+        # ────────────────────────────────────────────────────────────────
+
+        for text, widget in [
+            ("Start Date",      self.f_start),
+            ("EDD (Due Date)",  self.f_edd),
+            ("Attended By *",   self.f_staff),   # ← new row
+            ("Status",          self.f_status),
+        ]:
             lbl = QLabel(text); lbl.setStyleSheet(ls)
             form.addRow(lbl, widget)
         lay.addLayout(form)
@@ -184,12 +223,18 @@ class NewPregnancyDialog(QDialog):
         lay.addLayout(btns)
 
     def _on_save(self):
+        staff_id = self.f_staff.currentData()
+        if staff_id is None:
+            QMessageBox.warning(self, "Missing", "Please select a staff member.")
+            return
+
         self.result_data = {
             "patient_id":    self.patient_id,
             "pregnancy_num": self.next_num,
             "start_date":    self.f_start.date().toString("yyyy-MM-dd"),
             "edd":           self.f_edd.date().toString("yyyy-MM-dd"),
             "status":        self.f_status.currentText(),
+            "staff_id":      staff_id,   # ← added
         }
         self.accept()
 
@@ -425,34 +470,49 @@ class PrenatalDashboardScreen(QMainWindow):
             QMessageBox.warning(self, "No Patient", "Please select a patient first.")
             return
 
+        # ── 1. get the next pregnancy number ─────────────────────────────────
         conn = get_connection()
         next_num = 1
         if conn:
             try:
                 cur = conn.cursor()
-                cur.execute("SELECT COALESCE(MAX(pregnancy_num),0)+1 FROM pregnancy WHERE patient_id=%s", (self._current_patient_id,))
+                cur.execute(
+                    "SELECT COALESCE(MAX(pregnancy_num), 0) + 1 FROM pregnancy WHERE patient_id = %s",
+                    (self._current_patient_id,)
+                )
                 res = cur.fetchone()
                 next_num = res[0] if res else 1
                 conn.close()
             except Exception as e:
                 print(f"next num error: {e}")
-                if conn: conn.close()
+                if conn:
+                    conn.close()
 
+        # ── 2. show dialog ────────────────────────────────────────────────────
         dlg = NewPregnancyDialog(self._current_patient_id, next_num, parent=self)
-        if dlg.exec() == QDialog.DialogCode.Accepted:
-            conn = get_connection()
-            if not conn: return
-            try:
-                cur = conn.cursor()
-                cur.execute("""
-                    INSERT INTO pregnancy (patient_id, pregnancy_num, start_date, edd, status)
-                    VALUES (%(patient_id)s,%(pregnancy_num)s,%(start_date)s,%(edd)s,%(status)s)
-                """, dlg.result_data)
-                conn.commit(); conn.close()
-                self.load_pregnancies(self._current_patient_id)
-            except Exception as e:
-                QMessageBox.critical(self, "Error", str(e))
-                if conn: conn.close()
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        # ── 3. save with staff_id ─────────────────────────────────────────────
+        conn = get_connection()
+        if not conn:
+            return
+        try:
+            cur = conn.cursor()
+            cur.execute("""
+                INSERT INTO pregnancy
+                    (patient_id, pregnancy_num, start_date, edd, status, staff_id)
+                VALUES
+                    (%(patient_id)s, %(pregnancy_num)s, %(start_date)s,
+                    %(edd)s, %(status)s, %(staff_id)s)
+            """, dlg.result_data)
+            conn.commit()
+            conn.close()
+            self.load_pregnancies(self._current_patient_id)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+            if conn:
+                conn.close()
 
     # ── navigation ────────────────────────────────────────────────────────────
     def go_to_dashboard(self):

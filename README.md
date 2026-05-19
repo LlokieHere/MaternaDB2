@@ -2,8 +2,10 @@ NEED TO FINISH:
 
 - whole prenatal care module
 - Finalize Database
-- Finalize appointment module since there are some xolumns that weren't used in the appointment module
-
+- Finalize appointment module
+-   -there are some xolumns that weren't used in the appointment module
+    -merge address and emergency contact table to patient_profile
+    
 
 # MATERNADB: Integrated Maternal Health Information System
 

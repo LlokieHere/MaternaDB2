@@ -235,7 +235,7 @@ class PrenatalVisitDialog(_BaseDialog):
             ("AOG (weeks) *",      self.f_aog),
             ("Staff / Doctor *",   self.f_staff),   # now a dropdown
             ("Blood Pressure *",   self.f_bp),
-            ("Weight (kg) *",      self.f_wt),
+            ("Weight (g) *",      self.f_wt),
             ("FHT (bpm)",          self.f_fht),
             ("Fundal Height (cm)", self.f_fh),
             ("Presentation",       self.f_pres),
@@ -680,7 +680,7 @@ class NewbornDialog(_BaseDialog):
         self.f_dob        = self._date()
         self.f_tob        = self._time(delivery_time)   # QTimeEdit, defaults to delivery time
         self.f_sex        = self._combo(self.SEX)
-        self.f_weight     = self._field("e.g. 3.2  (kg)")
+        self.f_weight     = self._field("e.g. 3200  (g)")
         self.f_length     = self._field("e.g. 50  (cm)")
         self.f_apgar      = self._field("e.g. 8  (0-10)")
 
@@ -689,7 +689,7 @@ class NewbornDialog(_BaseDialog):
         self._row("Date of Birth",     self.f_dob)
         self._row("Time of Birth *",   self.f_tob)
         self._row("Sex *",             self.f_sex)
-        self._row("Weight (kg) *",     self.f_weight)
+        self._row("Weight (g) *",     self.f_weight)
         self._row("Length (cm) *",     self.f_length)
         self._row("APGAR Score (0-10) *", self.f_apgar)
 
@@ -704,7 +704,7 @@ class NewbornDialog(_BaseDialog):
                 self.f_tob.setTime(QTime(t.hour, t.minute) if hasattr(t, 'hour') else QTime.fromString(str(t)[:5], "HH:mm"))
             idx = self.f_sex.findText(existing.get("sex", ""))
             if idx >= 0: self.f_sex.setCurrentIndex(idx)
-            self.f_weight.setText(str(existing.get("birth_weight_kg", "")) if existing.get("birth_weight_kg") else "")
+            self.f_weight.setText(str(existing.get("birth_weight_g", "")) if existing.get("birth_weight_g") else "")
             self.f_length.setText(str(existing.get("birth_length_cm", "")) if existing.get("birth_length_cm") else "")
             self.f_apgar.setText(str(existing.get("apgar_score", "")) if existing.get("apgar_score") is not None else "")
 
@@ -739,7 +739,7 @@ class NewbornDialog(_BaseDialog):
             "date_of_birth":   self.f_dob.date().toString("yyyy-MM-dd"),
             "time_of_birth":   tob,
             "sex":             self.f_sex.currentText(),
-            "birth_weight_kg": wt_v,
+            "birth_weight_g": wt_v,
             "birth_length_cm": ln_v,
             "apgar_score":     apgar_v,
         }
@@ -1595,7 +1595,7 @@ class PrenatalCareScreen(QMainWindow):
 
             cur.execute("""
                 SELECT newborn_id, delivery_id, pregnancy_id, baby_last_name,
-                    baby_first_name, sex, birth_weight_kg, birth_length_cm,
+                    baby_first_name, sex, birth_weight_g, birth_length_cm,
                     apgar_score, date_of_birth, time_of_birth
                 FROM newborn WHERE pregnancy_id = %s
             """, (self._pregnancy_id,))
@@ -1611,7 +1611,7 @@ class PrenatalCareScreen(QMainWindow):
                 "delivery_type","delivery_outcome","birth_outcome",
                 "delivery_location","referred_to","remarks","staff_display"]
         n_cols = ["newborn_id","delivery_id","pregnancy_id","baby_last_name",
-                "baby_first_name","sex","birth_weight_kg","birth_length_cm",
+                "baby_first_name","sex","birth_weight_g","birth_length_cm",
                 "apgar_score","date_of_birth","time_of_birth"]
 
         hdr = self._section_header("Delivery Record", self._add_delivery)
@@ -1722,10 +1722,10 @@ class PrenatalCareScreen(QMainWindow):
                 cur.execute("""
                     INSERT INTO newborn
                         (delivery_id, pregnancy_id, baby_last_name, baby_first_name,
-                        sex, birth_weight_kg, birth_length_cm, apgar_score,
+                        sex, birth_weight_g, birth_length_cm, apgar_score,
                         date_of_birth, time_of_birth)
                     VALUES (%(delivery_id)s, %(pregnancy_id)s, %(baby_last_name)s, %(baby_first_name)s,
-                            %(sex)s, %(birth_weight_kg)s, %(birth_length_cm)s, %(apgar_score)s,
+                            %(sex)s, %(birth_weight_g)s, %(birth_length_cm)s, %(apgar_score)s,
                             %(date_of_birth)s, %(time_of_birth)s)
                 """, dlg.result_data)
                 conn.commit(); conn.close()
@@ -1748,7 +1748,7 @@ class PrenatalCareScreen(QMainWindow):
                         date_of_birth   = %(date_of_birth)s,
                         time_of_birth   = %(time_of_birth)s,
                         sex             = %(sex)s,
-                        birth_weight_kg = %(birth_weight_kg)s,
+                        birth_weight_g = %(birth_weight_g)s,
                         birth_length_cm = %(birth_length_cm)s,
                         apgar_score     = %(apgar_score)s
                     WHERE newborn_id = %(newborn_id)s
@@ -1859,7 +1859,7 @@ class PrenatalCareScreen(QMainWindow):
             return l
         info.addWidget(stat("DOB:", fmt_date(n.get("date_of_birth",""))))
         info.addWidget(stat("Time:", str(n.get("time_of_birth","—"))))
-        if n.get("birth_weight_kg"): info.addWidget(stat("Weight:", f"{n['birth_weight_kg']} kg"))
+        if n.get("birth_weight_g"): info.addWidget(stat("Weight:", f"{n['birth_weight_g']} g"))
         if n.get("birth_length_cm"): info.addWidget(stat("Length:", f"{n['birth_length_cm']} cm"))
         if n.get("apgar_score") is not None: info.addWidget(stat("APGAR:", str(n["apgar_score"])))
         info.addStretch()

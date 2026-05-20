@@ -20,43 +20,39 @@ class BlobBackground(QWidget):
         h = self.height()
 
         # ── BLOB 1: Large anchor blob — bottom left corner ────────────────────
-        # Biggest blob, anchored off-screen bottom-left, peeks in
         painter.setBrush(QBrush(QColor(220, 110, 170, 200)))
         painter.drawEllipse(
-            int(w * -0.10),   # x: starts slightly off left edge
-            int(h *  0.55),   # y: starts at 55% down
-            int(w *  0.55),   # width: half the screen wide
-            int(h *  0.70),   # height: tall, bleeds off bottom
+            int(w * -0.10),
+            int(h *  0.55),
+            int(w *  0.55),
+            int(h *  0.70),
         )
 
         # ── BLOB 2: Medium blob — top right ───────────────────────────────────
-        # Peeks from top-right corner
         painter.setBrush(QBrush(QColor(232, 138, 180, 180)))
         painter.drawEllipse(
-            int(w *  0.60),   # x: starts at 60% from left
-            int(h * -0.20),   # y: starts above top edge
-            int(w *  0.55),   # width: bleeds off right
-            int(h *  0.55),   # height: moderate height
+            int(w *  0.60),
+            int(h * -0.20),
+            int(w *  0.55),
+            int(h *  0.55),
         )
 
         # ── BLOB 3: Small accent blob — top left ──────────────────────────────
-        # Small decorative blob top-left corner
         painter.setBrush(QBrush(QColor(240, 180, 215, 150)))
         painter.drawEllipse(
-            int(w * -0.08),   # x: slightly off left
-            int(h * -0.10),   # y: slightly off top
-            int(w *  0.28),   # width: small
-            int(h *  0.35),   # height: small
+            int(w * -0.08),
+            int(h * -0.10),
+            int(w *  0.28),
+            int(h *  0.35),
         )
 
         # ── BLOB 4: Small accent blob — bottom right ──────────────────────────
-        # Tiny blob bottom-right to balance composition
         painter.setBrush(QBrush(QColor(225, 150, 190, 130)))
         painter.drawEllipse(
-            int(w *  0.78),   # x: far right
-            int(h *  0.70),   # y: lower area
-            int(w *  0.30),   # width: small
-            int(h *  0.40),   # height: small, bleeds off bottom-right
+            int(w *  0.78),
+            int(h *  0.70),
+            int(w *  0.30),
+            int(h *  0.40),
         )
 
 
@@ -67,20 +63,20 @@ class SignUpScreen(QMainWindow):
         self.ui.setupUi(self)
         self.setWindowTitle("MaternaDB - Sign Up")
 
-        # ✅ Clear solid background
         self.setStyleSheet("")
 
-        # ✅ Replace centralwidget with BlobBackground
+        # Replace centralwidget with BlobBackground
         self.blob_bg = BlobBackground(self)
         self.setCentralWidget(self.blob_bg)
 
-        # ✅ Re-parent the card onto the blob background
+        # Re-parent the card onto the blob background
         self.ui.frame.setParent(self.blob_bg)
         self.ui.frame.show()
 
         self.ui.signUpButton.clicked.connect(self.sign_up)
         self.ui.signInLinkButton.clicked.connect(self.go_to_login)
 
+        self._load_staff()
         self.showMaximized()
         self.center_card()
 
@@ -98,51 +94,111 @@ class SignUpScreen(QMainWindow):
         parent_h = self.centralWidget().height()
 
         card_width  = 341
-        card_height = 480
+        card_height = 510   # increased to fit staff dropdown
 
         x = (parent_w - card_width)  // 2
         y = (parent_h - card_height) // 2
 
         self.ui.frame.setGeometry(x, y, card_width, card_height)
 
+    # ── Staff loader ──────────────────────────────────────────────────────────
+    def _load_staff(self):
+        """Populate the staff combo with active staff who don't have an account yet."""
+        conn = get_connection()
+        if not conn:
+            return
+        try:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT s.staff_id,
+                       CONCAT(s.first_name, ' ', s.last_name, ' (', s.role, ')')
+                FROM staff s
+                WHERE s.status = 'Active'
+                  AND s.staff_id NOT IN (
+                      SELECT staff_id FROM users WHERE staff_id IS NOT NULL
+                  )
+                ORDER BY s.last_name, s.first_name
+            """)
+            rows = cur.fetchall()
+            conn.close()
+
+            self.ui.staffCombo.clear()
+            self.ui.staffCombo.addItem("— Select your staff profile —", userData=None)
+            for staff_id, name in rows:
+                self.ui.staffCombo.addItem(name, userData=staff_id)
+
+        except Exception as e:
+            print(f"load staff error: {e}")
+            if conn:
+                conn.close()
+
+    # ── Sign up ───────────────────────────────────────────────────────────────
     def sign_up(self):
         name             = self.ui.fullNameInput.text().strip()
         email            = self.ui.emailInput.text().strip()
         password         = self.ui.passwordInput.text()
         confirm_password = self.ui.confirmPasswordInput.text()
+        staff_id         = self.ui.staffCombo.currentData()
 
+        # ── Validation ────────────────────────────────────────────────────────
         if not name or not email or not password or not confirm_password:
-            QMessageBox.warning(self, "Error", "Please fill in all fields!")
+            QMessageBox.warning(self, "Error", "Please fill in all fields.")
+            return
+
+        if staff_id is None:
+            QMessageBox.warning(self, "Error", "Please select your staff profile.")
             return
 
         if password != confirm_password:
-            QMessageBox.warning(self, "Error", "Passwords do not match!")
+            QMessageBox.warning(self, "Error", "Passwords do not match.")
             return
 
         if len(password) < 6:
-            QMessageBox.warning(self, "Error", "Password must be at least 6 characters!")
+            QMessageBox.warning(self, "Error", "Password must be at least 6 characters.")
             return
 
+        # ── Save to DB ────────────────────────────────────────────────────────
         conn = get_connection()
         if not conn:
             QMessageBox.critical(self, "Error", "Cannot connect to database.")
             return
 
         try:
-            cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)",
-                (name, email, password)
-            )
+            cur = conn.cursor()
+
+            # Fetch role from the selected staff record
+            cur.execute("SELECT role FROM staff WHERE staff_id = %s", (staff_id,))
+            row = cur.fetchone()
+            if not row:
+                QMessageBox.warning(self, "Error", "Selected staff profile not found.")
+                conn.close()
+                return
+            role = row[0]
+
+            # Insert the new user account
+            cur.execute("""
+                INSERT INTO users (name, email, password, role, staff_id)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (name, email, password, role, staff_id))
+
             conn.commit()
-            cursor.close()
-            conn.close()
-            QMessageBox.information(self, "Success", "Account created successfully!")
-            self.go_to_login()
-        except Exception as e:
-            QMessageBox.warning(self, "Error", f"Registration failed: {e}")
             conn.close()
 
+            QMessageBox.information(
+                self, "Success",
+                f"Account created successfully!\nRegistered as: {role}"
+            )
+            self.go_to_login()
+
+        except Exception as e:
+            if "users_email_unique" in str(e):
+                QMessageBox.warning(self, "Error", "That email address is already registered.")
+            else:
+                QMessageBox.warning(self, "Error", f"Registration failed:\n{e}")
+            if conn:
+                conn.close()
+
+    # ── Navigation ────────────────────────────────────────────────────────────
     def go_to_login(self):
         from screens.login_screen import LoginScreen
         self.login_window = LoginScreen()

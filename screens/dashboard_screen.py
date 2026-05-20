@@ -32,6 +32,11 @@ class DashboardScreen(QMainWindow):
 
         self._build_sidebar_profile()
 
+        # ── Hide for non-Admin users ──────────────────────────────────────────
+        user = session.get()
+        role = user.get("role", "") if user else ""
+        self.ui.manage_staff_btn.setVisible(role == "Admin")
+
     # -------------------------
     # SIDEBAR PROFILE
     # -------------------------
@@ -366,6 +371,11 @@ class DashboardScreen(QMainWindow):
 
     # ── NEW ──────────────────────────────────────────────────────────────────
     def _open_staff_management(self):
+        user = session.get()
+        if not user or user.get("role") != "Admin":
+            QtWidgets.QMessageBox.warning(self, "Access Denied",
+                "Only administrators can access Staff Management.")
+            return
         from staff_management.staff_management_dialog import StaffManagementDialog
         dlg = StaffManagementDialog(parent=self)
-        dlg.exec()   # opens as dialog; user stays on dashboard when closed
+        dlg.exec()

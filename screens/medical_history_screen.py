@@ -24,31 +24,28 @@ class MedicalHistoryScreen(QMainWindow):
         self.load_logo()
         self._build_sidebar_profile()
 
-
+    # ── Logo ──────────────────────────────────────────────────────────────────
     def load_logo(self):
         from PyQt6.QtGui import QPixmap
-        from PyQt6.QtCore import Qt
         pixmap = QPixmap("Asset/MaternaDB_logo.png")
         if not pixmap.isNull():
             self.ui.label_3.setText("")
-            self.ui.label_3.setStyleSheet("")  # ✅ clear the stylesheet
+            self.ui.label_3.setStyleSheet("")
             self.ui.label_3.setPixmap(
                 pixmap.scaled(
                     40, 40,
                     Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation
+                    Qt.TransformationMode.SmoothTransformation,
                 )
             )
             self.ui.label_3.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # -------------------------
-    # SIDEBAR PROFILE
-    # -------------------------
+
+    # ── Sidebar profile ───────────────────────────────────────────────────────
     def _build_sidebar_profile(self):
         user = session.get()
         name = user["name"] if user else "User"
         role = user.get("role", "Admin") if user else "Admin"
 
-        # Avatar — clicking opens the profile dialog
         self.profile_avatar = QLabel("👤", parent=self.ui.frame)
         self.profile_avatar.setFixedSize(64, 64)
         self.profile_avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -72,11 +69,7 @@ class MedicalHistoryScreen(QMainWindow):
         self.profile_role_lbl = QLabel(role, parent=self.ui.frame)
         self.profile_role_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.profile_role_lbl.setStyleSheet(
-            """
-            color: white;
-            font-size: 11px;
-            border: none;
-            """
+            "color: white; font-size: 11px; border: none;"
         )
 
         self.profile_divider = QLabel(parent=self.ui.frame)
@@ -85,12 +78,8 @@ class MedicalHistoryScreen(QMainWindow):
             "background-color: rgba(255,255,255,0.2); border: none;"
         )
 
-        for w in (
-            self.profile_avatar,
-            self.profile_name_lbl,
-            self.profile_role_lbl,
-            self.profile_divider
-        ):
+        for w in (self.profile_avatar, self.profile_name_lbl,
+                  self.profile_role_lbl, self.profile_divider):
             w.raise_()
             w.show()
 
@@ -113,115 +102,58 @@ class MedicalHistoryScreen(QMainWindow):
         self.profile_divider.setGeometry(pad, div_y, sidebar_w - pad * 2, 1)
 
     def _open_profile_dialog(self):
-        from user_profile.user_profile_dialog import UserProfileDialog  # ✅ correct path
+        from user_profile.user_profile_dialog import UserProfileDialog
         dlg = UserProfileDialog(parent=self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
-            # Refresh sidebar labels if name/role changed
             user = session.get()
             if user:
                 self.profile_name_lbl.setText(user.get("name", ""))
                 self.profile_role_lbl.setText(user.get("role", ""))
 
-    # =====================================================
-    # 📏 AUTO REPOSITION SIDEBAR PROFILE ON RESIZE
-    # =====================================================
-
+    # ── Layout helpers ────────────────────────────────────────────────────────
     def layout_sidebar(self):
-        h = self.height()
-
+        h       = self.height()
         sidebar_w = 230
 
-        # Profile section
         self.profile_avatar.setGeometry(73, 20, 64, 64)
-
         self.profile_name_lbl.setGeometry(20, 95, 190, 30)
-
         self.profile_role_lbl.setGeometry(20, 120, 190, 20)
-
         self.profile_divider.setGeometry(15, 150, 200, 1)
 
-        # Navigation buttons
         btn_top = 170
-        btn_h = 41
+        btn_h   = 41
         btn_gap = 8
-        btn_x = 10
-        btn_w = sidebar_w - 20
+        btn_x   = 10
+        btn_w   = sidebar_w - 20
 
-        buttons = [
-            self.ui.pushButton,
-            self.ui.pushButton_2,
-            self.ui.pushButton_3,
-            self.ui.pushButton_4,
-        ]
+        for i, btn in enumerate([
+            self.ui.pushButton, self.ui.pushButton_2,
+            self.ui.pushButton_3, self.ui.pushButton_4,
+        ]):
+            btn.setGeometry(btn_x, btn_top + i * (btn_h + btn_gap), btn_w, btn_h)
 
-        for i, btn in enumerate(buttons):
-            btn.setGeometry(
-                btn_x,
-                btn_top + i * (btn_h + btn_gap),
-                btn_w,
-                btn_h
-            )
-
-        # Logout button
-        self.ui.pushButton_5.setGeometry(
-            btn_x,
-            h - 120,
-            btn_w,
-            btn_h
-        )
+        self.ui.pushButton_5.setGeometry(btn_x, h - 120, btn_w, btn_h)
 
     def layout_nav(self):
         w = self.width()
         h = self.height()
 
         sidebar_w = 230
-        navbar_h = 60
-        padding = 30
+        navbar_h  = 60
 
-        # Top navbar
         self.ui.frame_2.setGeometry(0, 0, w, navbar_h)
-
-        # Sidebar
         self.ui.frame.setGeometry(0, navbar_h, sidebar_w, h - navbar_h)
+        self.ui.frame_3.setGeometry(sidebar_w, navbar_h, w - sidebar_w, h - navbar_h)
 
-        # Main content
-        self.ui.frame_3.setGeometry(
-            sidebar_w,
-            navbar_h,
-            w - sidebar_w,
-            h - navbar_h
-        )
-
-        # Sidebar buttons
-        btn_x = 20
-        btn_w = 191
-        btn_h = 41
-        gap = 10
-
+        btn_x, btn_w, btn_h, gap = 20, 191, 41, 10
         start_y = 180
+        for i, btn in enumerate([
+            self.ui.pushButton, self.ui.pushButton_2,
+            self.ui.pushButton_3, self.ui.pushButton_4,
+        ]):
+            btn.setGeometry(btn_x, start_y + i * (btn_h + gap), btn_w, btn_h)
 
-        buttons = [
-            self.ui.pushButton,
-            self.ui.pushButton_2,
-            self.ui.pushButton_3,
-            self.ui.pushButton_4,
-        ]
-
-        for i, btn in enumerate(buttons):
-            btn.setGeometry(
-                btn_x,
-                start_y + i * (btn_h + gap),
-                btn_w,
-                btn_h
-            )
-
-        # Logout button pinned near bottom
-        self.ui.pushButton_5.setGeometry(
-            btn_x,
-            h - navbar_h - 70,
-            btn_w,
-            btn_h
-        )
+        self.ui.pushButton_5.setGeometry(btn_x, h - navbar_h - 70, btn_w, btn_h)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -244,7 +176,7 @@ class MedicalHistoryScreen(QMainWindow):
         content_h = h - 61
         self.ui.frame_3.setGeometry(content_x, 61, content_w, content_h)
 
-        pad = 40
+        pad     = 40
         inner_w = content_w - (pad * 2)
 
         self.ui.label.setGeometry(pad, 20, inner_w // 2, 61)
@@ -253,7 +185,7 @@ class MedicalHistoryScreen(QMainWindow):
         self.ui.frame_4.setGeometry(pad, 80, inner_w, header_h)
         self.ui.frame_5.setGeometry(20, 20, 111, 91)
         self.ui.patient_name.setGeometry(170, 15, inner_w - 320, 30)
-        self.ui.layoutWidget.setGeometry(170, 55, inner_w - 320, 75)
+        self.ui.layoutWidget.setGeometry(170, 50, inner_w - 320, 80)
 
         tab_y = 80 + header_h + 20
         self.ui.layoutWidget1.setGeometry(pad, tab_y, inner_w, 40)
@@ -267,11 +199,12 @@ class MedicalHistoryScreen(QMainWindow):
         self.ui.medical_history_table.setGeometry(0, 0, inner_w, table_h)
         self.ui.medical_history_table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Stretch)
-        
+
         self._reposition_sidebar_profile()
         self.layout_sidebar()
         self.layout_nav()
 
+    # ── Navigation setup ──────────────────────────────────────────────────────
     def setup_navigation(self):
         try:
             self.ui.pushButton.clicked.connect(self.go_to_dashboard)
@@ -288,6 +221,7 @@ class MedicalHistoryScreen(QMainWindow):
         except Exception as e:
             print("Navigation error:", e)
 
+    # ── Patient header ────────────────────────────────────────────────────────
     def load_patient_data(self):
         conn = get_connection()
         if not conn:
@@ -297,9 +231,17 @@ class MedicalHistoryScreen(QMainWindow):
             cursor.execute("""
                 SELECT patient_id, first_name, middle_name, last_name,
                        date_registered, blood_type, philhealth_no
-                FROM patient_profile WHERE patient_id = %s
+                FROM patient_profile
+                WHERE patient_id = %s
             """, (self.patient_id,))
             data = cursor.fetchone()
+
+            cursor.execute("""
+                SELECT EXTRACT(YEAR FROM AGE(date_of_birth))
+                FROM patient_profile
+                WHERE patient_id = %s
+            """, (self.patient_id,))
+            age_result = cursor.fetchone()
             cursor.close()
             conn.close()
 
@@ -314,15 +256,15 @@ class MedicalHistoryScreen(QMainWindow):
             self.ui.placeholder_register_date.setText(register)
             self.ui.placeholder_p_bloodType.setText(data[5] or "")
             self.ui.placeholder_philhealth_num.setText(str(data[6]))
+            self.ui.placeholder_age.setText(
+                str(int(age_result[0])) if age_result and age_result[0] else "—"
+            )
             self._build_patient_avatar(full_name)
-        
+
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load patient:\n{e}")
 
     def _build_patient_avatar(self, full_name: str):
-        from PyQt6.QtGui import QPainter, QColor, QBrush, QPen, QFont
-
-        # Generate initials
         parts    = full_name.strip().split()
         initials = ""
         if len(parts) == 1:
@@ -330,19 +272,17 @@ class MedicalHistoryScreen(QMainWindow):
         elif len(parts) >= 2:
             initials = parts[0][0].upper() + parts[-1][0].upper()
 
-        # Create avatar label inside frame_5
         avatar = QLabel(initials, parent=self.ui.frame_5)
         avatar.setGeometry(0, 0, self.ui.frame_5.width(), self.ui.frame_5.height())
         avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
         avatar.setStyleSheet(
             "background-color: rgb(192, 116, 182);"
-            "color: white;"
-            "font-size: 32px;"
-            "font-weight: bold;"
-            "border-radius: 6px;"
-            "border: none;"
+            "color: white; font-size: 32px; font-weight: bold;"
+            "border-radius: 6px; border: none;"
         )
         avatar.show()
+
+    # ── Table ─────────────────────────────────────────────────────────────────
     def load_medical_history(self):
         conn = get_connection()
         if not conn:
@@ -387,7 +327,7 @@ class MedicalHistoryScreen(QMainWindow):
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self.load_medical_history()
 
-    # ── Outer navigation ──────────────────────────────────────
+    # ── Outer navigation ──────────────────────────────────────────────────────
     def go_to_dashboard(self):
         from screens.dashboard_screen import DashboardScreen
         self.new_window = DashboardScreen()
@@ -418,7 +358,7 @@ class MedicalHistoryScreen(QMainWindow):
         self.new_window.showMaximized()
         self.close()
 
-    # ── Inner navigation ──────────────────────────────────────
+    # ── Inner navigation ──────────────────────────────────────────────────────
     def go_to_patient_profile(self):
         from screens.patient_profile_screen import PatientProfileScreen
         self.new_window = PatientProfileScreen(self.patient_id)

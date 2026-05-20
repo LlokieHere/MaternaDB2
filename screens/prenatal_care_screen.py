@@ -195,6 +195,7 @@ class PrenatalVisitDialog(_BaseDialog):
         self.pregnancy_id = pregnancy_id
         self.next_num = next_num
         self.existing = existing
+        self.staff_map = {}
 
         self.f_date  = self._date()
         self.f_aog   = self._field("e.g. 28")
@@ -262,7 +263,27 @@ class PrenatalVisitDialog(_BaseDialog):
             idx = self.f_risk.findText(existing.get("risk_assessment", ""))
             if idx >= 0: self.f_risk.setCurrentIndex(idx)
 
+        self._load_staff()               # ← called here, after all fields exist
         self._add_buttons(self._on_save)
+
+        # set staff dropdown to existing value AFTER loading
+        if existing and existing.get("staff"):
+            idx = self.f_staff.findText(existing.get("staff", ""))
+            if idx >= 0: self.f_staff.setCurrentIndex(idx)
+
+    def _load_staff(self):
+        conn = get_connection()
+        if not conn: return
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT staff_id, first_name || ' ' || last_name FROM staff ORDER BY last_name")
+            for sid, name in cur.fetchall():
+                self.staff_map[name] = sid
+                self.f_staff.addItem(name)
+            conn.close()
+        except Exception as e:
+            print(f"staff load error: {e}")
+            if conn: conn.close()
 
     def _on_save(self):
         aog = self.f_aog.text().strip()
@@ -304,7 +325,6 @@ class PrenatalVisitDialog(_BaseDialog):
             "presentation":        self.f_pres.currentText(),
             "risk_assessment":     self.f_risk.currentText(),
         }
-        self.accept()
 
 class DiagnosisDialog(QDialog):
     RISK_STYLES = {

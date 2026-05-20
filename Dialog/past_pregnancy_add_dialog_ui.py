@@ -169,9 +169,9 @@ class Ui_Dialog(object):
         self.complication_placeholder.setPlaceholderText(
             _t("Dialog", "e.g., Perineal tear, None")
         )
-        self.baby_weight_label.setText(_t("Dialog", "Baby Weight (kg)"))
+        self.baby_weight_label.setText(_t("Dialog", "Baby Weight (g)"))
         self.baby_weight_placeholder.setPlaceholderText(
-            _t("Dialog", "e.g., 3.2")
+            _t("Dialog", "e.g., 3200")
         )
         self.outcome_label.setText(_t("Dialog", "Outcome"))
         self.cancel_btn_2.setText(_t("Dialog", "Cancel"))

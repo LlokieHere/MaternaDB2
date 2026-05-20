@@ -507,7 +507,6 @@ class Ui_MainWindow(object):
 "}\n"
 "\n"
 "QTableWidget::item:selected {\n"
-"    background-color: black;\n"
 "    color: rgb(21, 23, 61);\n"
 "}\n"
 "\n"

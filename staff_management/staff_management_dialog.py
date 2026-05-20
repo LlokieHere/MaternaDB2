@@ -119,11 +119,7 @@ class StaffFormDialog(QDialog):
     staff_data: dict with keys matching DB columns (for edit/view)
     """
 
-    ROLES = [
-        "Doctor", "Midwife", "Nurse", "Nurse Aide",
-        "Medical Technologist", "Pharmacist", "Receptionist",
-        "Billing Staff", "Administrator", "Other"
-    ]
+    ROLES = ["Doctor", "Midwife", "Nurse", "Admin"]
 
     def __init__(self, parent=None, mode="add", staff_data=None):
         super().__init__(parent)

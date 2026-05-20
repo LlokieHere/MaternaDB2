@@ -280,7 +280,7 @@ class Ui_MainWindow(object):
             "border: 1px solid rgb(158, 136, 163); border-radius: 15px; }"
             "QTableWidget::item { background-color: rgb(236, 198, 220); color: rgb(21, 23, 61);"
             "padding: 8px; border: none; border-bottom: 1px solid rgb(210, 177, 200); }"
-            "QTableWidget::item:selected { background-color: black; color: rgb(21, 23, 61); }"
+            "QTableWidget::item:selected { color: rgb(21, 23, 61); }"
             "QHeaderView::section { background-color: rgb(236, 198, 220); color: rgb(21, 23, 61);"
             "font-weight: bold; font-size: 10px; border: none;"
             "border-bottom: 1px solid rgb(155, 132, 160); padding: 5px; }"

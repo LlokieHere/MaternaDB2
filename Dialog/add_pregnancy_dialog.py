@@ -13,30 +13,34 @@ class AddPastPregnancyDialog(QDialog):
 
         self.patient_id = patient_id
 
-        # Set default date to today
         self.ui.delivery_dat_placeholder.setDate(QDate.currentDate())
 
-        # Connect buttons
         self.ui.save_btn_2.clicked.connect(self.save)
         self.ui.cancel_btn_2.clicked.connect(self.reject)
 
     def save(self):
-        delivery_date  = self.ui.delivery_dat_placeholder.date().toPyDate()
-        delivery_type  = self.ui.delivery_date_placeholder.currentText().strip()  # ← was .text()
-        presentation   = self.ui.presentation_placeholder.text().strip()
-        complications  = self.ui.complication_placeholder.text().strip()
-        baby_weight    = self.ui.baby_weight_placeholder.text().strip()
-        outcome        = self.ui.comboBox.currentText()
-        episiotomy     = self.ui.Episiotomy_placeholder.currentText() == "Yes"
+        delivery_date = self.ui.delivery_dat_placeholder.date().toPyDate()
+        delivery_type = self.ui.delivery_date_placeholder.currentText().strip()
+        presentation  = self.ui.presentation_placeholder.text().strip()
+        complications = self.ui.complication_placeholder.text().strip()
+        baby_weight   = self.ui.baby_weight_placeholder.text().strip()
+        outcome       = self.ui.comboBox.currentText().strip()
+        episiotomy    = self.ui.Episiotomy_placeholder.currentText() == "Yes"
 
-        # delivery_type is always filled (combo has a default), so remove the empty check
-        # and replace with just using the value directly
+        # Validate outcome matches DB constraint exactly
+        valid_outcomes = ["Full Term", "Preterm", "Miscarriage", "Abortion"]
+        if outcome not in valid_outcomes:
+            QMessageBox.warning(self, "Invalid Input",
+                f"Outcome must be one of: {', '.join(valid_outcomes)}")
+            return
 
+        # baby_weight is INTEGER in DB (store as grams)
         if baby_weight:
             try:
-                baby_weight_val = float(baby_weight)
+                baby_weight_val = int(baby_weight)
             except ValueError:
-                QMessageBox.warning(self, "Invalid Input", "Baby weight must be a number (e.g. 3.2).")
+                QMessageBox.warning(self, "Invalid Input",
+                    "Baby weight must be a whole number in grams (e.g. 3200).")
                 return
         else:
             baby_weight_val = None
@@ -50,6 +54,7 @@ class AddPastPregnancyDialog(QDialog):
 
         try:
             cursor = conn.cursor()
+
             cursor.execute("""
                 INSERT INTO past_pregnancy (
                     patient_id, gravida, para, abortion, living_children,
@@ -58,9 +63,11 @@ class AddPastPregnancyDialog(QDialog):
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 self.patient_id, gravida, para, abortion, living,
-                delivery_date, delivery_type, presentation,
-                episiotomy, complications, baby_weight_val, outcome
+                delivery_date, delivery_type or None,
+                presentation or None, episiotomy,
+                complications or None, baby_weight_val, outcome
             ))
+
             conn.commit()
             cursor.close()
             conn.close()
@@ -71,10 +78,6 @@ class AddPastPregnancyDialog(QDialog):
             QMessageBox.critical(self, "Error", f"Failed to save record:\n{e}")
 
     def calculate_gpal_with_new(self, new_outcome):
-        """
-        Calculate GPAL from all existing records for this patient
-        plus the new outcome being added right now.
-        """
         conn = get_connection()
         if not conn:
             return 1, 0, 0, 0
@@ -82,32 +85,26 @@ class AddPastPregnancyDialog(QDialog):
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT outcome
-                FROM past_pregnancy
-                WHERE patient_id = %s
+                SELECT outcome FROM past_pregnancy WHERE patient_id = %s
             """, (self.patient_id,))
-
             rows = cursor.fetchall()
             cursor.close()
             conn.close()
 
-            # Start with existing records
-            all_outcomes = [row[0] for row in rows]
-
-            # Add the new one being saved now
-            all_outcomes.append(new_outcome)
+            # All existing + the one being added now
+            all_outcomes = [row[0] for row in rows] + [new_outcome]
 
             gravida  = len(all_outcomes)
             para     = 0
             abortion = 0
             living   = 0
 
-            for outcome in all_outcomes:
-                outcome = (outcome or "").strip().lower()
-                if outcome in ("full term", "preterm"):
-                    para    += 1
-                    living  += 1
-                elif outcome in ("miscarriage", "abortion"):
+            for o in all_outcomes:
+                o_lower = (o or "").strip().lower()
+                if o_lower in ("full term", "preterm"):
+                    para   += 1
+                    living += 1
+                elif o_lower in ("miscarriage", "abortion"):
                     abortion += 1
 
             return gravida, para, abortion, living
@@ -115,3 +112,4 @@ class AddPastPregnancyDialog(QDialog):
         except Exception as e:
             print(f"GPAL calculation error: {e}")
             return 1, 0, 0, 0
+        

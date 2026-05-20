@@ -440,18 +440,24 @@ class pastPregnancyScreen(QMainWindow):
             cursor.close()
             conn.close()
 
-            # ── GPAL labels ──────────────────────────────
-            if rows:
-                latest = rows[0]
-                self.ui.gravida_placeholer.setText(str(latest[1]))
-                self.ui.para_placeholder.setText(str(latest[2]))
-                self.ui.abortion_placeholder.setText(str(latest[3]))
-                self.ui.living_children_placeholder.setText(str(latest[4]))
-            else:
-                self.ui.gravida_placeholer.setText("0")
-                self.ui.para_placeholder.setText("0")
-                self.ui.abortion_placeholder.setText("0")
-                self.ui.living_children_placeholder.setText("0")
+            # ── GPAL labels — computed live from all rows, never from stored columns ──
+            gravida  = len(rows)
+            para     = 0
+            abortion = 0
+            living   = 0
+
+            for row_data in rows:
+                outcome = (row_data[8] or "").strip().lower()
+                if outcome in ("full term", "preterm"):
+                    para   += 1
+                    living += 1
+                elif outcome in ("miscarriage", "abortion"):
+                    abortion += 1
+
+            self.ui.gravida_placeholer.setText(str(gravida))
+            self.ui.para_placeholder.setText(str(para))
+            self.ui.abortion_placeholder.setText(str(abortion))
+            self.ui.living_children_placeholder.setText(str(living))
 
             # ── Table setup (do this ONCE, outside the loop) ──────────────────
             self.ui.patient_table.setRowCount(0)

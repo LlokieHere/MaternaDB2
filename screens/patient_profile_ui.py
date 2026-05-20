@@ -158,101 +158,83 @@ class Ui_MainWindow(object):
         card_layout.setContentsMargins(20, 15, 20, 15)
         card_layout.setSpacing(15)
 
-        # Avatar placeholder
+        # Avatar box (matches frame_5 in past_pregnancy_ui)
         self.frame_5 = QtWidgets.QFrame(parent=self.frame_4)
         self.frame_5.setObjectName("frame_5")
         self.frame_5.setFixedSize(111, 91)
-        self.frame_5.setStyleSheet("background-color: rgb(255, 255, 255); border-radius: 6px;")
+        self.frame_5.setStyleSheet(
+            "background-color: rgb(255, 255, 255); border-radius: 6px;"
+        )
         self.frame_5.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
+
+        self.name_acronym = QtWidgets.QLabel("", parent=self.frame_5)
+        self.name_acronym.setObjectName("name_acronym")
+        self.name_acronym.setGeometry(0, 0, 111, 91)
+        self.name_acronym.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+
         card_layout.addWidget(self.frame_5)
 
-        # Name + meta grid
-        meta_widget = QtWidgets.QWidget(parent=self.frame_4)
-        meta_widget.setStyleSheet("background: transparent;")
-        meta_layout = QtWidgets.QVBoxLayout(meta_widget)
-        meta_layout.setContentsMargins(0, 0, 0, 0)
-        meta_layout.setSpacing(4)
+        # Meta info (name + grid rows) — identical structure to past pregnancy
+        self.layoutWidget_2 = QtWidgets.QWidget(parent=self.frame_4)
+        self.layoutWidget_2.setObjectName("layoutWidget_2")
+        self.layoutWidget_2.setStyleSheet("background: transparent;")
 
-        white_label_style = "color: rgb(255, 255, 255); font-size: 16px; background: transparent; border: none;"
+        meta_vbox = QtWidgets.QVBoxLayout(self.layoutWidget_2)
+        meta_vbox.setContentsMargins(0, 0, 0, 0)
+        meta_vbox.setSpacing(4)
 
-        self.patient_name = QtWidgets.QLabel("NAME", parent=meta_widget)
+        white_label_style = (
+            "color: rgb(255, 255, 255); font-size: 16px;"
+            "background: transparent; border: none;"
+        )
+
+        self.patient_name = QtWidgets.QLabel("NAME", parent=self.layoutWidget_2)
         self.patient_name.setObjectName("patient_name")
-        self.patient_name.setStyleSheet("color: rgb(255, 255, 255); font-size: 20px; background: transparent; border: none;")
-        meta_layout.addWidget(self.patient_name)
+        self.patient_name.setStyleSheet(
+            "color: rgb(255, 255, 255); font-size: 20px;"
+            "background: transparent; border: none;"
+        )
+        meta_vbox.addWidget(self.patient_name)
 
-        # Row 1: ID | Age | Registered
-        row1_widget = QtWidgets.QWidget()
-        row1_widget.setStyleSheet("background: transparent;")
-        row1 = QtWidgets.QHBoxLayout(row1_widget)
-        row1.setContentsMargins(0, 0, 0, 0)
-        row1.setSpacing(20)
+        # Grid row — ID | Age | Registered | Blood Type | PhilHealth
+        self.gridLayout_4 = QtWidgets.QGridLayout()
+        self.gridLayout_4.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout_4.setSpacing(8)
 
-        self.patient_id_label = QtWidgets.QLabel("Patient ID:", parent=row1_widget)
-        self.patient_id_label.setStyleSheet(white_label_style)
-        self.patient_id_label.setObjectName("patient_id_label")
+        def _wlbl(text, obj_name):
+            l = QtWidgets.QLabel(text, parent=self.layoutWidget_2)
+            l.setObjectName(obj_name)
+            l.setStyleSheet(white_label_style)
+            return l
 
-        self.placeholder_p_ID = QtWidgets.QLabel("placeholder", parent=row1_widget)
-        self.placeholder_p_ID.setStyleSheet(white_label_style)
-        self.placeholder_p_ID.setObjectName("placeholder_p_ID")
+        self.patient_id_label          = _wlbl("Patient ID:",  "patient_id_label")
+        self.placeholder_p_ID          = _wlbl("placeholder",  "placeholder_p_ID")
+        self.age_label                 = _wlbl("Age:",         "age_label")
+        self.age_placeholder           = _wlbl("null",         "age_placeholder")
+        self.registered_date           = _wlbl("Registered:",  "registered_date")
+        self.placeholder_register_date_2 = _wlbl("MM/DD/YYYY","placeholder_register_date_2")
 
-        self.age_label = QtWidgets.QLabel("Age:", parent=row1_widget)
-        self.age_label.setStyleSheet(white_label_style)
-        self.age_label.setObjectName("age_label")
+        self.gridLayout_4.addWidget(self.patient_id_label,          0, 0)
+        self.gridLayout_4.addWidget(self.placeholder_p_ID,          0, 1)
+        self.gridLayout_4.addWidget(self.age_label,                 0, 2)
+        self.gridLayout_4.addWidget(self.age_placeholder,           0, 3)
+        self.gridLayout_4.addWidget(self.registered_date,           0, 4)
+        self.gridLayout_4.addWidget(self.placeholder_register_date_2, 0, 5)
 
-        self.age_placeholder = QtWidgets.QLabel("null", parent=row1_widget)
-        self.age_placeholder.setStyleSheet(white_label_style)
-        self.age_placeholder.setObjectName("age_placeholder")
+        self.blood_type_label          = _wlbl("Blood Type:",  "blood_type_label")
+        self.placeholder_p_bloodType   = _wlbl("placeholder",  "placeholder_p_bloodType")
+        self.philhealth_number         = _wlbl("PhilHealth#:", "philhealth_number")
+        self.placeholder_philhealth_num = _wlbl("1234-5676-8907", "placeholder_philhealth_num")
 
-        self.patient_id_label_3 = QtWidgets.QLabel("Registered:", parent=row1_widget)
-        self.patient_id_label_3.setStyleSheet(white_label_style)
-        self.patient_id_label_3.setObjectName("patient_id_label_3")
+        self.gridLayout_4.addWidget(self.blood_type_label,          1, 0)
+        self.gridLayout_4.addWidget(self.placeholder_p_bloodType,   1, 1)
+        self.gridLayout_4.addWidget(self.philhealth_number,         1, 2)
+        self.gridLayout_4.addWidget(self.placeholder_philhealth_num,1, 3)
 
-        self.placeholder_register_date_2 = QtWidgets.QLabel("MM/DD/YYYY", parent=row1_widget)
-        self.placeholder_register_date_2.setStyleSheet(white_label_style)
-        self.placeholder_register_date_2.setObjectName("placeholder_register_date_2")
+        meta_vbox.addLayout(self.gridLayout_4)
+        meta_vbox.addStretch()
 
-        for w in [
-            self.patient_id_label, self.placeholder_p_ID,
-            self.age_label, self.age_placeholder,
-            self.patient_id_label_3, self.placeholder_register_date_2,
-        ]:
-            row1.addWidget(w)
-        row1.addStretch()
-        meta_layout.addWidget(row1_widget)
-
-        # Row 2: Blood Type | PhilHealth
-        row2_widget = QtWidgets.QWidget()
-        row2_widget.setStyleSheet("background: transparent;")
-        row2 = QtWidgets.QHBoxLayout(row2_widget)
-        row2.setContentsMargins(0, 0, 0, 0)
-        row2.setSpacing(20)
-
-        self.blood_type_label = QtWidgets.QLabel("Blood Type:", parent=row2_widget)
-        self.blood_type_label.setStyleSheet(white_label_style)
-        self.blood_type_label.setObjectName("blood_type_label")
-
-        self.placeholder_p_bloodType = QtWidgets.QLabel("placeholder", parent=row2_widget)
-        self.placeholder_p_bloodType.setStyleSheet(white_label_style)
-        self.placeholder_p_bloodType.setObjectName("placeholder_p_bloodType")
-
-        self.patient_id_label_4 = QtWidgets.QLabel("PhilHealth#:", parent=row2_widget)
-        self.patient_id_label_4.setStyleSheet(white_label_style)
-        self.patient_id_label_4.setObjectName("patient_id_label_4")
-
-        self.placeholder_philhealth_num = QtWidgets.QLabel("1234-5676-8907", parent=row2_widget)
-        self.placeholder_philhealth_num.setStyleSheet(white_label_style)
-        self.placeholder_philhealth_num.setObjectName("placeholder_philhealth_num")
-
-        for w in [
-            self.blood_type_label, self.placeholder_p_bloodType,
-            self.patient_id_label_4, self.placeholder_philhealth_num,
-        ]:
-            row2.addWidget(w)
-        row2.addStretch()
-        meta_layout.addWidget(row2_widget)
-        meta_layout.addStretch()
-
-        card_layout.addWidget(meta_widget, stretch=1)
+        card_layout.addWidget(self.layoutWidget_2, stretch=1)
 
         content_layout.addWidget(self.frame_4)
 

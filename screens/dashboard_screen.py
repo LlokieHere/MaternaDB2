@@ -133,7 +133,8 @@ class DashboardScreen(QMainWindow):
         header = self.ui.patient_table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
+        self.ui.patient_table.setColumnWidth(2, 120)
 
     def load_logo(self):
         pixmap = QPixmap("Asset/MaternaDB_logo.png")
@@ -267,7 +268,7 @@ class DashboardScreen(QMainWindow):
                 SELECT
                     CONCAT(last_name, ', ', first_name, ' ', COALESCE(middle_name, '')),
                     philhealth_no,
-                    date_registered
+                    TO_CHAR(date_registered, 'Mon DD, YYYY')
                 FROM patient_profile
                 ORDER BY date_registered DESC
                 LIMIT 5
@@ -276,7 +277,12 @@ class DashboardScreen(QMainWindow):
             self.ui.patient_table.setRowCount(len(patients))
             for row, patient in enumerate(patients):
                 for col, value in enumerate(patient):
-                    self.ui.patient_table.setItem(row, col, QTableWidgetItem(str(value)))
+                    item = QTableWidgetItem(str(value))
+                    if col == 2:
+                        item.setTextAlignment(
+                            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+                        )
+                    self.ui.patient_table.setItem(row, col, item)
             cursor.close()
         except Exception as e:
             print("Patient load error:", e)

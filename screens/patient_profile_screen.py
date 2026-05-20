@@ -215,12 +215,10 @@ class PatientProfileScreen(QMainWindow):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-
-        if hasattr(self, "profile_avatar"):
-            self._reposition_sidebar_profile()
-        
         self.layout_sidebar()
         self.layout_nav()
+        if hasattr(self, "profile_avatar"):
+            self._reposition_sidebar_profile()
 
     def load_logo(self):
         from PyQt6.QtGui import QPixmap
@@ -305,7 +303,7 @@ class PatientProfileScreen(QMainWindow):
             self.ui.patient_name.setText(full_name)
             self.ui.placeholder_p_ID.setText(str(data[0]))
             self.ui.placeholder_register_date_2.setText(register)
-            self.ui.placeholder_philhealth_num.setText(str(data[7] or ""))
+            self.ui.placeholder_philhealth_num.setText(str(data[7] or "")) 
 
             conn2 = get_connection()
             cursor2 = conn2.cursor()

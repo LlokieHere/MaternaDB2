@@ -29,13 +29,26 @@ class EditPatientDialog(QDialog):
             self.ui.middleName_placeholder.setText(patient_data.get("middle_name", ""))
             self.ui.lastName_placeholder.setText(patient_data.get("last_name", ""))
             self.ui.suffix_placeholder.setText(patient_data.get("suffix", ""))
-            self.ui.civilStatus_placeholder.setText(patient_data.get("civil_status", ""))
+
+            # civil_status
+            w = self.ui.civilStatus_placeholder
+            if hasattr(w, 'setCurrentText'):
+                w.setCurrentText(patient_data.get("civil_status", ""))
+            else:
+                w.setText(patient_data.get("civil_status", ""))
+
             self.ui.contactNum_placeholder.setText(patient_data.get("contact_number", ""))
             self.ui.philHealth_placeholder.setText(patient_data.get("philhealth_no", ""))
             self.ui.occupation_placeholder.setText(patient_data.get("occupation", ""))
             self.ui.religion_placeholder.setText(patient_data.get("religion", ""))
             self.ui.nationality_placeholder.setText(patient_data.get("nationality", ""))
-            self.ui.religion_placeholder_2.setText(patient_data.get("blood_type", ""))
+
+            # blood_type
+            w = self.ui.religion_placeholder_2
+            if hasattr(w, 'setCurrentText'):
+                w.setCurrentText(patient_data.get("blood_type", ""))
+            else:
+                w.setText(patient_data.get("blood_type", ""))
 
             # Address
             self.ui.street_placeholder.setText(patient_data.get("street", ""))
@@ -74,7 +87,7 @@ class EditPatientDialog(QDialog):
         self.ui.save_btn.clicked.connect(self.save)
 
     # =====================================================
-    # 🔁 NAVIGATION
+    # NAVIGATION
     # =====================================================
     def go_to_page0(self): self.stack.setCurrentIndex(0)
     def go_to_page1(self): self.stack.setCurrentIndex(1)
@@ -82,7 +95,7 @@ class EditPatientDialog(QDialog):
     def cancel(self):      self.reject()
 
     # =====================================================
-    # 💾 SAVE
+    # SAVE
     # =====================================================
     def save(self):
         first = self.ui.firstName_placeholder.text().strip()
@@ -119,7 +132,6 @@ class EditPatientDialog(QDialog):
 
     def _insert(self, cursor):
         vals = self._collect_values()
-
         cursor.execute("""
             INSERT INTO patient_profile (
                 first_name, middle_name, last_name, suffix,
@@ -144,57 +156,62 @@ class EditPatientDialog(QDialog):
 
     def _update(self, cursor):
         vals = self._collect_values()
-
         cursor.execute("""
             UPDATE patient_profile SET
-                first_name             = %s,
-                middle_name            = %s,
-                last_name              = %s,
-                suffix                 = %s,
-                date_of_birth          = %s,
-                civil_status           = %s,
-                contact_number         = %s,
-                philhealth_no          = %s,
-                occupation             = %s,
-                religion               = %s,
-                nationality            = %s,
-                blood_type             = %s,
-                street                 = %s,
-                barangay               = %s,
-                city                   = %s,
-                province               = %s,
-                emergency_first_name   = %s,
-                emergency_last_name    = %s,
-                emergency_middle_name  = %s,
+                first_name               = %s,
+                middle_name              = %s,
+                last_name                = %s,
+                suffix                   = %s,
+                date_of_birth            = %s,
+                civil_status             = %s,
+                contact_number           = %s,
+                philhealth_no            = %s,
+                occupation               = %s,
+                religion                 = %s,
+                nationality              = %s,
+                blood_type               = %s,
+                street                   = %s,
+                barangay                 = %s,
+                city                     = %s,
+                province                 = %s,
+                emergency_first_name     = %s,
+                emergency_last_name      = %s,
+                emergency_middle_name    = %s,
                 emergency_contact_number = %s,
-                emergency_relationship = %s
+                emergency_relationship   = %s
             WHERE patient_id = %s
         """, vals + (self.patient_id,))
+
+    def _get_text(self, widget):
+        """Safely get text from either a QLineEdit or QComboBox."""
+        if hasattr(widget, 'currentText'):
+            return widget.currentText().strip()
+        return widget.text().strip()
 
     def _collect_values(self):
         """Returns a tuple of all form values in column order."""
         dob = self.ui.dateOfBirth_placeholder.date().toPyDate()
 
         return (
-            self.ui.firstName_placeholder.text().strip(),       # first_name
-            self.ui.middleName_placeholder.text().strip(),      # middle_name
-            self.ui.lastName_placeholder.text().strip(),        # last_name
-            self.ui.suffix_placeholder.text().strip(),          # suffix
-            dob,                                                # date_of_birth
-            self.ui.civilStatus_placeholder.text().strip(),     # civil_status
-            self.ui.contactNum_placeholder.text().strip(),      # contact_number
-            self.ui.philHealth_placeholder.text().strip(),      # philhealth_no
-            self.ui.occupation_placeholder.text().strip(),      # occupation
-            self.ui.religion_placeholder.text().strip(),        # religion
-            self.ui.nationality_placeholder.text().strip(),     # nationality
-            self.ui.religion_placeholder_2.text().strip(),      # blood_type
-            self.ui.street_placeholder.text().strip(),          # street
-            self.ui.barangay_placeholder.text().strip(),        # barangay
-            self.ui.city_placeholder.text().strip(),            # city
-            self.ui.province_placeholder.text().strip(),        # province
-            self.ui.EC_firstName_placeholder_2.text().strip(),  # emergency_first_name
-            self.ui.EC_last_name_placeholder_2.text().strip(),  # emergency_last_name
-            self.ui.EC_middleName_placeholder_2.text().strip(), # emergency_middle_name
-            self.ui.emergencyNum_placeholder_2.text().strip(),  # emergency_contact_number
-            self.ui.relationship_placeholder_2.text().strip(),  # emergency_relationship
+            self.ui.firstName_placeholder.text().strip(),          # first_name
+            self.ui.middleName_placeholder.text().strip(),         # middle_name
+            self.ui.lastName_placeholder.text().strip(),           # last_name
+            self.ui.suffix_placeholder.text().strip(),             # suffix
+            dob,                                                   # date_of_birth
+            self._get_text(self.ui.civilStatus_placeholder),       # civil_status
+            self.ui.contactNum_placeholder.text().strip(),         # contact_number
+            self.ui.philHealth_placeholder.text().strip(),         # philhealth_no
+            self.ui.occupation_placeholder.text().strip(),         # occupation
+            self.ui.religion_placeholder.text().strip(),           # religion
+            self.ui.nationality_placeholder.text().strip(),        # nationality
+            self._get_text(self.ui.religion_placeholder_2),        # blood_type
+            self.ui.street_placeholder.text().strip(),             # street
+            self.ui.barangay_placeholder.text().strip(),           # barangay
+            self.ui.city_placeholder.text().strip(),               # city
+            self.ui.province_placeholder.text().strip(),           # province
+            self.ui.EC_firstName_placeholder_2.text().strip(),     # emergency_first_name
+            self.ui.EC_last_name_placeholder_2.text().strip(),     # emergency_last_name
+            self.ui.EC_middleName_placeholder_2.text().strip(),    # emergency_middle_name
+            self.ui.emergencyNum_placeholder_2.text().strip(),     # emergency_contact_number
+            self.ui.relationship_placeholder_2.text().strip(),     # emergency_relationship
         )

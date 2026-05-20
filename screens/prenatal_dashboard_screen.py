@@ -55,13 +55,14 @@ class PregnancyCard(QWidget):
         "Lost":      "background-color: rgb(255,220,220); color: rgb(150,30,30);",
     }
 
-    def __init__(self, pregnancy: dict, visit_count: int, on_open, parent=None):
-        super().__init__(parent)
-        self.pregnancy = pregnancy
-        self.visit_count = visit_count
-        self.on_open = on_open
-        self._build()
-
+    def __init__(self, pregnancy: dict, visit_count: int, on_open, on_edit, parent=None):
+            super().__init__(parent)
+            self.pregnancy = pregnancy
+            self.visit_count = visit_count
+            self.on_open = on_open
+            self.on_edit = on_edit   # ← new
+            self._build()
+                
     def _build(self):
         outer = QHBoxLayout(self)
         outer.setContentsMargins(4, 0, 4, 0)
@@ -87,6 +88,18 @@ class PregnancyCard(QWidget):
         title = QLabel(f"{ordinal(num)} Pregnancy")
         title.setStyleSheet("color: rgb(21,23,61); font-size: 14px; font-weight: bold; border: none;")
 
+        btn_edit = QPushButton("Edit")
+        btn_edit.setFixedHeight(30)
+        btn_edit.setStyleSheet("""
+            QPushButton {
+                background-color: rgb(192,116,182); color: white;
+                border: none; border-radius: 6px;
+                font-size: 11px; font-weight: bold; padding: 0 12px;
+            }
+            QPushButton:hover { background-color: rgb(160,80,150); }
+        """)
+        btn_edit.clicked.connect(lambda: self.on_edit(self.pregnancy))
+
         btn = QPushButton("View Prenatal Care →")
         btn.setFixedHeight(30)
         btn.setStyleSheet("""
@@ -98,9 +111,13 @@ class PregnancyCard(QWidget):
             QPushButton:hover { background-color: rgb(192,116,182); }
         """)
         btn.clicked.connect(lambda: self.on_open(self.pregnancy))
-        top.addWidget(title); top.addStretch(); top.addWidget(btn)
+        top.addWidget(title)
+        top.addStretch()
+        top.addWidget(btn_edit)   # ← new
+        top.addWidget(btn)
         lay.addLayout(top)
 
+        # ── ADD THESE MISSING LINES ──
         info = QHBoxLayout(); info.setSpacing(24)
 
         def stat(label, value):
@@ -125,6 +142,7 @@ class PregnancyCard(QWidget):
         info.addWidget(chip)
         info.addStretch()
         lay.addLayout(info)
+
         outer.addWidget(card, stretch=1)
 
 
@@ -238,6 +256,151 @@ class NewPregnancyDialog(QDialog):
         }
         self.accept()
 
+class EditPregnancyDialog(QDialog):
+    STATUSES = ["Ongoing", "Completed"]
+
+    def __init__(self, pregnancy: dict, parent=None):
+        super().__init__(parent)
+        self.pregnancy = pregnancy
+        self._staff_list = []
+        self.setWindowTitle(f"Edit {ordinal(pregnancy.get('pregnancy_num', '?'))} Pregnancy")
+        self.setMinimumWidth(380)
+        self.setStyleSheet("QDialog { background-color: rgb(240,230,240); }")
+        self._load_staff()
+        self._build()
+
+    def _load_staff(self):
+        conn = get_connection()
+        if not conn:
+            return
+        try:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT staff_id,
+                    CONCAT(first_name, ' ', last_name, ' (', role, ')')
+                FROM staff
+                WHERE status = 'Active'
+                ORDER BY last_name, first_name
+            """)
+            self._staff_list = cur.fetchall()
+            conn.close()
+        except Exception as e:
+            print(f"load staff error: {e}")
+            if conn:
+                conn.close()
+
+    def _build(self):
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(22, 22, 22, 22)
+        lay.setSpacing(14)
+
+        num = self.pregnancy.get("pregnancy_num", "?")
+        title = QLabel(f"Edit {ordinal(num)} Pregnancy")
+        title.setStyleSheet(
+            "color: rgb(21,23,61); font-size: 15px; font-weight: bold; font-family: 'Arial Black';"
+        )
+        lay.addWidget(title)
+
+        sep = QFrame()
+        sep.setFrameShape(QFrame.Shape.HLine)
+        sep.setStyleSheet("background-color: rgb(210,180,210); max-height: 1px;")
+        lay.addWidget(sep)
+
+        fs = ("border: 1px solid rgb(158,136,163); border-radius: 6px; padding: 5px 8px;"
+              "background-color: rgb(247,247,247); color: rgb(21,23,61); font-size: 12px;")
+        cs = ("QComboBox { background-color: rgb(247,247,247); border: 1px solid rgb(158,136,163);"
+              "border-radius: 6px; padding: 5px 8px; color: rgb(21,23,61); font-size: 12px; }"
+              "QComboBox QAbstractItemView { background-color: rgb(247,247,247); color: rgb(21,23,61);"
+              "selection-background-color: rgb(192,116,182); }")
+        ls = "color: rgb(21,23,61); font-size: 12px;"
+        form = QFormLayout()
+        form.setSpacing(10)
+
+        # Start date
+        self.f_start = QDateEdit()
+        self.f_start.setCalendarPopup(True)
+        self.f_start.setStyleSheet(fs)
+        start = self.pregnancy.get("start_date")
+        if start:
+            self.f_start.setDate(QDate.fromString(str(start), "yyyy-MM-dd"))
+        else:
+            self.f_start.setDate(QDate.currentDate())
+
+        # EDD
+        self.f_edd = QDateEdit()
+        self.f_edd.setCalendarPopup(True)
+        self.f_edd.setStyleSheet(fs)
+        edd = self.pregnancy.get("edd")
+        if edd:
+            self.f_edd.setDate(QDate.fromString(str(edd), "yyyy-MM-dd"))
+        else:
+            self.f_edd.setDate(QDate.currentDate().addDays(280))
+
+        # Staff dropdown
+        self.f_staff = QComboBox()
+        self.f_staff.setStyleSheet(cs)
+        for sid, name in self._staff_list:
+            self.f_staff.addItem(name, userData=sid)
+        # Pre-select current staff
+        current_staff_id = self.pregnancy.get("staff_id")
+        if current_staff_id:
+            for i in range(self.f_staff.count()):
+                if self.f_staff.itemData(i) == current_staff_id:
+                    self.f_staff.setCurrentIndex(i)
+                    break
+
+        # Status
+        self.f_status = QComboBox()
+        self.f_status.addItems(self.STATUSES)
+        self.f_status.setStyleSheet(cs)
+        current_status = self.pregnancy.get("status", "Ongoing")
+        idx = self.f_status.findText(current_status)
+        if idx >= 0:
+            self.f_status.setCurrentIndex(idx)
+
+        for text, widget in [
+            ("Start Date",     self.f_start),
+            ("EDD (Due Date)", self.f_edd),
+            ("Attended By *",  self.f_staff),
+            ("Status",         self.f_status),
+        ]:
+            lbl = QLabel(text)
+            lbl.setStyleSheet(ls)
+            form.addRow(lbl, widget)
+        lay.addLayout(form)
+
+        btns = QHBoxLayout()
+        btns.addStretch()
+        btn_c = QPushButton("Cancel")
+        btn_c.setStyleSheet(
+            "QPushButton { background-color: rgb(240,230,240); color: rgb(21,23,61);"
+            "border: 1px solid rgb(158,136,163); border-radius: 8px; padding: 7px 18px; font-size: 12px; }"
+        )
+        btn_c.clicked.connect(self.reject)
+        btn_s = QPushButton("Save")
+        btn_s.setStyleSheet(
+            "QPushButton { background-color: rgb(21,23,61); color: white; border: none;"
+            "border-radius: 8px; padding: 7px 18px; font-size: 12px; font-weight: bold; }"
+            "QPushButton:hover { background-color: rgb(192,116,182); }"
+        )
+        btn_s.clicked.connect(self._on_save)
+        btns.addWidget(btn_c)
+        btns.addWidget(btn_s)
+        lay.addLayout(btns)
+
+    def _on_save(self):
+        staff_id = self.f_staff.currentData()
+        if staff_id is None:
+            QMessageBox.warning(self, "Missing", "Please select a staff member.")
+            return
+        self.result_data = {
+            "pregnancy_id": self.pregnancy["pregnancy_id"],
+            "start_date":   self.f_start.date().toString("yyyy-MM-dd"),
+            "edd":          self.f_edd.date().toString("yyyy-MM-dd"),
+            "staff_id":     staff_id,
+            "status":       self.f_status.currentText(),
+        }
+        self.accept()
 
 class PrenatalDashboardScreen(QMainWindow):
     def __init__(self):
@@ -352,6 +515,49 @@ class PrenatalDashboardScreen(QMainWindow):
             self.ui.logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     # ── patients (only maternal patients that exist in patient_profile) ───────
+
+    def _edit_pregnancy(self, pregnancy: dict):
+        # Fetch full pregnancy row so we have staff_id
+        conn = get_connection()
+        if conn:
+            try:
+                cur = conn.cursor()
+                cur.execute(
+                    "SELECT staff_id FROM pregnancy WHERE pregnancy_id = %s",
+                    (pregnancy["pregnancy_id"],)
+                )
+                row = cur.fetchone()
+                if row:
+                    pregnancy = {**pregnancy, "staff_id": row[0]}
+                conn.close()
+            except Exception as e:
+                print(f"fetch staff_id error: {e}")
+                if conn: conn.close()
+
+        dlg = EditPregnancyDialog(pregnancy, parent=self)
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+        conn = get_connection()
+        if not conn:
+            return
+        try:
+            cur = conn.cursor()
+            cur.execute("""
+                UPDATE pregnancy SET
+                    start_date = %(start_date)s,
+                    edd        = %(edd)s,
+                    staff_id   = %(staff_id)s,
+                    status     = %(status)s
+                WHERE pregnancy_id = %(pregnancy_id)s
+            """, dlg.result_data)
+            conn.commit()
+            conn.close()
+            self.load_pregnancies(self._current_patient_id)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+            if conn:
+                conn.close()
+
     def load_patients(self):
         conn = get_connection()
         if not conn: return
@@ -430,14 +636,14 @@ class PrenatalDashboardScreen(QMainWindow):
             hdr = self._section_label("Ongoing")
             lay.insertWidget(lay.count() - 1, hdr)
             for p in ongoing:
-                card = PregnancyCard(p, counts.get(p["pregnancy_id"], 0), on_open=self._open_prenatal_care)
+                card = PregnancyCard(p, counts.get(p["pregnancy_id"], 0), on_open=self._open_prenatal_care, on_edit=self._edit_pregnancy)
                 lay.insertWidget(lay.count() - 1, card)
 
         if completed:
             hdr2 = self._section_label("Completed / Past")
             lay.insertWidget(lay.count() - 1, hdr2)
             for p in completed:
-                card = PregnancyCard(p, counts.get(p["pregnancy_id"], 0), on_open=self._open_prenatal_care)
+                card = PregnancyCard(p, counts.get(p["pregnancy_id"], 0), on_open=self._open_prenatal_care, on_edit=self._edit_pregnancy)
                 lay.insertWidget(lay.count() - 1, card)
 
     def _section_label(self, text) -> QLabel:

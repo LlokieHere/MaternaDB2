@@ -15,6 +15,9 @@ class PrescriptionScreen(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.patient_id = patient_id
+        self._selected_date = None
+        self._selected_staff_id = None
+        self._selected_prescription_id = None
         self.setWindowTitle("Prescriptions")
 
         self.setup_navigation()
@@ -22,14 +25,30 @@ class PrescriptionScreen(QMainWindow):
         self.load_prescriptions()
 
         self.ui.ad_prescription.clicked.connect(self.open_add_dialog)
+        self.ui.edit_prescription.clicked.connect(self.open_edit_dialog)
         self.ui.left_prescription_date_and_purpose.cellClicked.connect(
             self.on_prescription_selected)
+
+        # ── Delete button (created in code) ───────────────────────────────────
+        self.delete_btn = QPushButton("Delete Prescription", parent=self.ui.frame_3)
+        self.delete_btn.setStyleSheet("""
+            QPushButton {
+                border-radius: 12px;
+                background-color: rgb(220, 80, 80);
+                color: white;
+                border: none;
+                font-size: 12px;
+            }
+            QPushButton:hover { background-color: rgb(180, 50, 50); }
+        """)
+        self.delete_btn.clicked.connect(self.open_delete_dialog)
+        self.delete_btn.show()
+
         self.load_logo()
         self._build_sidebar_profile()
 
     def load_logo(self):
         from PyQt6.QtGui import QPixmap
-        from PyQt6.QtCore import Qt
         pixmap = QPixmap("Asset/MaternaDB_logo.png")
         if not pixmap.isNull():
             self.ui.label_3.setText("")
@@ -43,9 +62,7 @@ class PrescriptionScreen(QMainWindow):
             )
             self.ui.label_3.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-    # -------------------------
-    # SIDEBAR PROFILE
-    # -------------------------
+    # ── Sidebar profile ───────────────────────────────────────────────────────
     def _build_sidebar_profile(self):
         user = session.get()
         name = user["name"] if user else "User"
@@ -140,9 +157,6 @@ class PrescriptionScreen(QMainWindow):
         self.ui.pushButton_5.setGeometry(btn_x, h - 120, btn_w, btn_h)
 
     def _build_patient_avatar(self, full_name: str):
-        from PyQt6.QtGui import QPainter, QColor, QBrush, QPen, QFont
-
-        # Generate initials
         parts    = full_name.strip().split()
         initials = ""
         if len(parts) == 1:
@@ -150,20 +164,16 @@ class PrescriptionScreen(QMainWindow):
         elif len(parts) >= 2:
             initials = parts[0][0].upper() + parts[-1][0].upper()
 
-        # Create avatar label inside frame_5
         avatar = QLabel(initials, parent=self.ui.frame_5)
         avatar.setGeometry(0, 0, self.ui.frame_5.width(), self.ui.frame_5.height())
         avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
         avatar.setStyleSheet(
             "background-color: rgb(192, 116, 182);"
-            "color: white;"
-            "font-size: 32px;"
-            "font-weight: bold;"
-            "border-radius: 6px;"
-            "border: none;"
+            "color: white; font-size: 32px; font-weight: bold;"
+            "border-radius: 6px; border: none;"
         )
         avatar.show()
-    
+
     def layout_nav(self):
         w = self.width()
         h = self.height()
@@ -215,15 +225,16 @@ class PrescriptionScreen(QMainWindow):
         self.ui.frame_4.setGeometry(pad, 80, inner_w, header_h)
         self.ui.frame_5.setGeometry(20, 20, 111, 91)
         self.ui.patient_name.setGeometry(170, 15, inner_w - 320, 30)
-        self.ui.next_btn.setGeometry(inner_w - 140, 45, 120, 51)
         self.ui.layoutWidget.setGeometry(170, 50, inner_w - 320, 80)
 
         tab_y = 80 + header_h + 20
         self.ui.layoutWidget1.setGeometry(pad, tab_y, inner_w, 40)
 
+        # ── 3 action buttons in a row ─────────────────────────────────────────
         btn_y = tab_y + 50
-        self.ui.edit_prescription.setGeometry(inner_w - 250, btn_y, 120, 31)
-        self.ui.ad_prescription.setGeometry(inner_w - 120, btn_y, 120, 31)
+        self.ui.edit_prescription.setGeometry(inner_w - 390, btn_y, 130, 31)
+        self.ui.ad_prescription.setGeometry(inner_w - 250, btn_y, 130, 31)
+        self.delete_btn.setGeometry(inner_w - 110, btn_y, 150, 31)
 
         panels_y = btn_y + 41
         panels_h = content_h - panels_y - pad
@@ -302,14 +313,13 @@ class PrescriptionScreen(QMainWindow):
             self.ui.placeholder_age.setText(
                 str(int(age_result[0])) if age_result and age_result[0] else "—"
             )
-
             self._build_patient_avatar(full_name)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load patient:\n{e}")
         finally:
             conn.close()
 
-    # ── Left table: one row per (date, prescriber) group ─────────────────────
+    # ── Left table ────────────────────────────────────────────────────────────
     def load_prescriptions(self):
         conn = get_connection()
         if not conn:
@@ -365,16 +375,20 @@ class PrescriptionScreen(QMainWindow):
             raw_date, staff_id = item.data(Qt.ItemDataRole.UserRole)
             self.load_prescription_medicines(raw_date, staff_id)
 
-    # ── Right panel: medicines for selected (date, prescriber) ───────────────
+    # ── Right panel ───────────────────────────────────────────────────────────
     def load_prescription_medicines(self, presc_date, staff_id):
+        self._selected_date = presc_date
+        self._selected_staff_id = staff_id
+        self._selected_prescription_id = None
+
         conn = get_connection()
         if not conn:
             return
         try:
             cursor = conn.cursor()
-            # ✅ No JOIN to medicine table — medicine_name lives on prescription now
             cursor.execute("""
                 SELECT
+                    p.prescription_id,
                     s.first_name || ' ' || s.last_name AS prescriber,
                     p.prescription_date,
                     p.medicine_name,
@@ -386,7 +400,7 @@ class PrescriptionScreen(QMainWindow):
                     p.notes
                 FROM prescription p
                 JOIN staff s ON p.prescribed_by = s.staff_id
-                WHERE p.patient_id  = %s
+                WHERE p.patient_id       = %s
                   AND p.prescription_date = %s
                   AND p.prescribed_by     = %s
                 ORDER BY p.prescription_id
@@ -398,13 +412,11 @@ class PrescriptionScreen(QMainWindow):
             if not rows:
                 return
 
-            # Header info (same for all rows in this group)
-            self.ui.prescribed_by_placeholder.setText(rows[0][0])
-            date_str = rows[0][1].strftime("%B %d, %Y") if rows[0][1] else ""
+            self.ui.prescribed_by_placeholder.setText(rows[0][1])
+            date_str = rows[0][2].strftime("%B %d, %Y") if rows[0][2] else ""
             self.ui.date_prescription_date_placeholder.setText(date_str)
 
-            # Show notes from the first medicine that has one, or clear
-            notes = next((r[8] for r in rows if r[8]), "")
+            notes = next((r[9] for r in rows if r[9]), "")
             self.ui.notes_placeholder.setText(notes)
 
             tbl = self.ui.patient_table_3
@@ -415,11 +427,11 @@ class PrescriptionScreen(QMainWindow):
             for med in rows:
                 row_index = tbl.rowCount()
                 tbl.insertRow(row_index)
-                # med[2]=medicine_name  [3]=dosage  [4]=frequency
-                # med[5]=duration       [6]=route    [7]=timing
-                for col, val in enumerate(med[2:8]):
+                for col, val in enumerate(med[3:9]):
                     item = QTableWidgetItem(str(val) if val else "")
                     item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    if col == 0:
+                        item.setData(Qt.ItemDataRole.UserRole, med[0])
                     tbl.setItem(row_index, col, item)
 
         except Exception as e:
@@ -427,11 +439,164 @@ class PrescriptionScreen(QMainWindow):
         finally:
             conn.close()
 
-    # ── Open add dialog ───────────────────────────────────────────────────────
+        tbl.cellClicked.connect(self._on_medicine_row_clicked)
+
+    def _on_medicine_row_clicked(self, row, col):
+        item = self.ui.patient_table_3.item(row, 0)
+        if item:
+            self._selected_prescription_id = item.data(Qt.ItemDataRole.UserRole)
+
+    # ── Add ───────────────────────────────────────────────────────────────────
     def open_add_dialog(self):
         dialog = AddPrescriptionDialog(self.patient_id, parent=self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self.load_prescriptions()
+
+    # ── Edit ──────────────────────────────────────────────────────────────────
+    def open_edit_dialog(self):
+        if self._selected_prescription_id is None:
+            QMessageBox.warning(self, "No Selection",
+                "Please click a medicine row in the right panel to select it first.")
+            return
+
+        conn = get_connection()
+        if not conn:
+            return
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT prescription_id, patient_id, prescribed_by,
+                       medicine_name, dosage, frequency, duration,
+                       route, timing, prescription_date, notes
+                FROM prescription
+                WHERE prescription_id = %s
+            """, (self._selected_prescription_id,))
+            row = cursor.fetchone()
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+            return
+
+        if not row:
+            return
+
+        existing = {
+            "prescription_id":   row[0],
+            "patient_id":        row[1],
+            "staff_id":          row[2],
+            "medicine_name":     row[3],
+            "dosage":            row[4],
+            "frequency":         row[5],
+            "duration":          row[6],
+            "route":             row[7],
+            "timing":            row[8],
+            "prescription_date": row[9],
+            "notes":             row[10],
+        }
+
+        dialog = AddPrescriptionDialog(self.patient_id, existing=existing, parent=self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            d = dialog.result_data
+            conn = get_connection()
+            if not conn:
+                return
+            try:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE prescription SET
+                        prescribed_by     = %s,
+                        medicine_name     = %s,
+                        dosage            = %s,
+                        frequency         = %s,
+                        duration          = %s,
+                        route             = %s,
+                        timing            = %s,
+                        prescription_date = %s,
+                        notes             = %s
+                    WHERE prescription_id = %s
+                """, (
+                    d["staff_id"], d["medicine_name"], d["dosage"],
+                    d["frequency"], d["duration"], d["route"], d["timing"],
+                    d["prescription_date"], d["notes"],
+                    self._selected_prescription_id
+                ))
+                conn.commit()
+                conn.close()
+                self.load_prescriptions()
+                if self._selected_date and self._selected_staff_id:
+                    self.load_prescription_medicines(
+                        self._selected_date, self._selected_staff_id)
+            except Exception as e:
+                QMessageBox.critical(self, "Error", str(e))
+                if conn:
+                    conn.close()
+
+    # ── Delete ────────────────────────────────────────────────────────────────
+    def open_delete_dialog(self):
+        if self._selected_prescription_id is None:
+            QMessageBox.warning(self, "No Selection",
+                "Please click a medicine row in the right panel to select it first.")
+            return
+
+        # fetch medicine name for the confirm message
+        medicine_name = ""
+        conn = get_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT medicine_name FROM prescription WHERE prescription_id = %s",
+                    (self._selected_prescription_id,)
+                )
+                row = cursor.fetchone()
+                medicine_name = row[0] if row else ""
+                cursor.close()
+                conn.close()
+            except Exception:
+                if conn:
+                    conn.close()
+
+        confirm = QMessageBox.question(
+            self, "Delete Prescription",
+            f"Delete '{medicine_name}'? This cannot be undone.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+
+        conn = get_connection()
+        if not conn:
+            return
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "DELETE FROM prescription WHERE prescription_id = %s",
+                (self._selected_prescription_id,)
+            )
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+            self._selected_prescription_id = None
+
+            # clear right panel
+            self.ui.patient_table_3.setRowCount(0)
+            self.ui.prescribed_by_placeholder.setText("")
+            self.ui.date_prescription_date_placeholder.setText("")
+            self.ui.notes_placeholder.setText("")
+
+            self.load_prescriptions()
+
+            # reload right panel if other medicines still exist in this group
+            if self._selected_date and self._selected_staff_id:
+                self.load_prescription_medicines(
+                    self._selected_date, self._selected_staff_id)
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to delete:\n{e}")
+            if conn:
+                conn.close()
 
     # ── Outer navigation ──────────────────────────────────────────────────────
     def go_to_dashboard(self):
@@ -478,7 +643,7 @@ class PrescriptionScreen(QMainWindow):
         self.close()
 
     def go_to_prescription(self):
-        pass  # already here
+        pass
 
     def go_to_medical_history(self):
         from screens.medical_history_screen import MedicalHistoryScreen

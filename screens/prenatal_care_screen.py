@@ -209,7 +209,7 @@ class PrenatalVisitDialog(_BaseDialog):
                 cur = conn.cursor()
                 cur.execute("""
                     SELECT staff_id,
-                           CONCAT(first_name, ' ', last_name, ' (', role, ')')
+                        CONCAT(first_name, ' ', last_name, ' (', role, ')')
                     FROM staff
                     WHERE status = 'Active'
                     ORDER BY last_name, first_name
@@ -262,28 +262,13 @@ class PrenatalVisitDialog(_BaseDialog):
             if idx >= 0: self.f_pres.setCurrentIndex(idx)
             idx = self.f_risk.findText(existing.get("risk_assessment", ""))
             if idx >= 0: self.f_risk.setCurrentIndex(idx)
-
-        self._load_staff()               # ← called here, after all fields exist
+        # ← called here, after all fields exist
         self._add_buttons(self._on_save)
 
         # set staff dropdown to existing value AFTER loading
         if existing and existing.get("staff"):
             idx = self.f_staff.findText(existing.get("staff", ""))
             if idx >= 0: self.f_staff.setCurrentIndex(idx)
-
-    def _load_staff(self):
-        conn = get_connection()
-        if not conn: return
-        try:
-            cur = conn.cursor()
-            cur.execute("SELECT staff_id, first_name || ' ' || last_name FROM staff ORDER BY last_name")
-            for sid, name in cur.fetchall():
-                self.staff_map[name] = sid
-                self.f_staff.addItem(name)
-            conn.close()
-        except Exception as e:
-            print(f"staff load error: {e}")
-            if conn: conn.close()
 
     def _on_save(self):
         aog = self.f_aog.text().strip()
@@ -325,6 +310,7 @@ class PrenatalVisitDialog(_BaseDialog):
             "presentation":        self.f_pres.currentText(),
             "risk_assessment":     self.f_risk.currentText(),
         }
+        self.accept()
 
 class DiagnosisDialog(QDialog):
     RISK_STYLES = {
@@ -512,7 +498,7 @@ class MedicationDialog(_BaseDialog):
                 cur = conn.cursor()
                 cur.execute("""
                     SELECT staff_id,
-                           CONCAT(first_name, ' ', last_name, ' (', role, ')')
+                        CONCAT(first_name, ' ', last_name, ' (', role, ')')
                     FROM staff WHERE status = 'Active'
                     ORDER BY last_name, first_name
                 """)
@@ -602,7 +588,7 @@ class DeliveryDialog(_BaseDialog):
                 cur = conn.cursor()
                 cur.execute("""
                     SELECT staff_id,
-                           CONCAT(first_name, ' ', last_name, ' (', role, ')')
+                        CONCAT(first_name, ' ', last_name, ' (', role, ')')
                     FROM staff WHERE status = 'Active'
                     ORDER BY last_name, first_name
                 """)
@@ -1087,10 +1073,10 @@ class PrenatalCareScreen(QMainWindow):
             cur = conn.cursor()
             cur.execute("""
                 SELECT patient_id,
-                       CONCAT(last_name, ', ', first_name,
-                              CASE WHEN middle_name IS NOT NULL AND middle_name <> ''
-                                   THEN ' ' || middle_name ELSE '' END),
-                       EXTRACT(YEAR FROM AGE(date_of_birth))
+                    CONCAT(last_name, ', ', first_name,
+                            CASE WHEN middle_name IS NOT NULL AND middle_name <> ''
+                                THEN ' ' || middle_name ELSE '' END),
+                    EXTRACT(YEAR FROM AGE(date_of_birth))
                 FROM patient_profile WHERE patient_id = %s
             """, (self._patient_id,))
             p = cur.fetchone()
@@ -1451,11 +1437,11 @@ class PrenatalCareScreen(QMainWindow):
                 d = dlg.result_data
                 cur.execute("""
                     INSERT INTO prescription
-                        (patient_id, prescribed_by, medicine_name, dosage,
+                        (patient_id, pregnancy_id, prescribed_by, medicine_name, dosage,
                         frequency, duration, route, timing,
                         prescription_date, notes)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (patient_id, d["staff_id"], d["medicine_name"], d["dosage"],
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (patient_id, self._pregnancy_id, d["staff_id"], d["medicine_name"], d["dosage"],
                     d["frequency"], d["duration"], d["route"], d["timing"],
                     d["prescription_date"], d["notes"]))
                 conn.commit(); conn.close()
@@ -1472,15 +1458,13 @@ class PrenatalCareScreen(QMainWindow):
             cur = conn.cursor()
             cur.execute("""
                 SELECT p.prescription_id,
-                       p.medicine_name, p.dosage, p.frequency, p.duration,
-                       p.route, p.timing, p.prescription_date, p.notes,
-                       p.prescribed_by,
-                       CONCAT(s.first_name, ' ', s.last_name, ' (', s.role, ')') AS staff_display
+                    p.medicine_name, p.dosage, p.frequency, p.duration,
+                    p.route, p.timing, p.prescription_date, p.notes,
+                    p.prescribed_by,
+                    CONCAT(s.first_name, ' ', s.last_name, ' (', s.role, ')') AS staff_display
                 FROM prescription p
                 LEFT JOIN staff s ON p.prescribed_by = s.staff_id
-                WHERE p.patient_id = (
-                    SELECT patient_id FROM pregnancy WHERE pregnancy_id = %s
-                )
+                WHERE p.pregnancy_id = %s
                 ORDER BY p.prescription_date DESC
             """, (self._pregnancy_id,))
             rows = cur.fetchall()
@@ -1738,8 +1722,8 @@ class PrenatalCareScreen(QMainWindow):
                 cur.execute("""
                     INSERT INTO newborn
                         (delivery_id, pregnancy_id, baby_last_name, baby_first_name,
-                         sex, birth_weight_kg, birth_length_cm, apgar_score,
-                         date_of_birth, time_of_birth)
+                        sex, birth_weight_kg, birth_length_cm, apgar_score,
+                        date_of_birth, time_of_birth)
                     VALUES (%(delivery_id)s, %(pregnancy_id)s, %(baby_last_name)s, %(baby_first_name)s,
                             %(sex)s, %(birth_weight_kg)s, %(birth_length_cm)s, %(apgar_score)s,
                             %(date_of_birth)s, %(time_of_birth)s)

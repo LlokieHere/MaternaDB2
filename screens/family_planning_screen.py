@@ -263,7 +263,6 @@ class FamilyPlanningScreen(QMainWindow):
         self.ui.frame_4.setGeometry(pad, 80, inner_w, header_h)
         self.ui.frame_5.setGeometry(20, 20, 111, 91)
         self.ui.patient_name.setGeometry(170, 15, inner_w - 320, 30)
-        self.ui.next_btn.setGeometry(inner_w - 140, 45, 120, 51)
         self.ui.layoutWidget.setGeometry(170, 55, inner_w - 320, 75)
 
         tab_y = 80 + header_h + 20

@@ -179,7 +179,7 @@ class _BaseDialog(QDialog):
 # ═══════════════════════════════════════════════════════════════════════════
 
 class PrenatalVisitDialog(_BaseDialog):
-    PRESENTATIONS = ["Cephalic", "Breech", "Transverse", "Oblique"]
+    PRESENTATIONS = ["Cephalic", "Breech", "Transverse"]  # removed Oblique
     RISKS = ["Low Risk", "Moderate Risk", "High Risk"]
 
     def __init__(self, pregnancy_id, next_num, existing=None, parent=None):
@@ -191,7 +191,30 @@ class PrenatalVisitDialog(_BaseDialog):
 
         self.f_date  = self._date()
         self.f_aog   = self._field("e.g. 28")
-        self.f_staff = self._field("e.g. Dr. Reyes")
+
+        # ── staff dropdown (replaces the old free-text field) ──────────────
+        self._staff_map = {}                  # "First Last (Role)" -> staff_id
+        self.f_staff = self._combo([])        # start empty, fill below
+        conn = get_connection()
+        if conn:
+            try:
+                cur = conn.cursor()
+                cur.execute("""
+                    SELECT staff_id,
+                           CONCAT(first_name, ' ', last_name, ' (', role, ')')
+                    FROM staff
+                    WHERE status = 'Active'
+                    ORDER BY last_name, first_name
+                """)
+                for sid, name in cur.fetchall():
+                    self._staff_map[name] = sid
+                    self.f_staff.addItem(name)
+                conn.close()
+            except Exception as e:
+                print(f"staff load error: {e}")
+                if conn: conn.close()
+        # ───────────────────────────────────────────────────────────────────
+
         self.f_bp    = self._field("e.g. 120/80")
         self.f_wt    = self._field("e.g. 62.5")
         self.f_fht   = self._field("e.g. 144  (leave blank if N/A)")
@@ -202,7 +225,7 @@ class PrenatalVisitDialog(_BaseDialog):
         for label, w in [
             ("Visit Date *",       self.f_date),
             ("AOG (weeks) *",      self.f_aog),
-            ("Staff / Doctor *",   self.f_staff),
+            ("Staff / Doctor *",   self.f_staff),   # now a dropdown
             ("Blood Pressure *",   self.f_bp),
             ("Weight (kg) *",      self.f_wt),
             ("FHT (bpm)",          self.f_fht),
@@ -212,14 +235,21 @@ class PrenatalVisitDialog(_BaseDialog):
         ]:
             self._row(label, w)
 
+        # pre-fill when editing an existing visit
         if existing:
             self.f_date.setDate(QDate.fromString(str(existing.get("visit_date", "")), "yyyy-MM-dd"))
             self.f_aog.setText(str(existing.get("aog_weeks", "")))
-            self.f_staff.setText(existing.get("staff", ""))
+
+            # match the saved staff name back to the dropdown
+            saved_staff = existing.get("staff", "")
+            idx = self.f_staff.findText(saved_staff)
+            if idx >= 0:
+                self.f_staff.setCurrentIndex(idx)
+
             self.f_bp.setText(existing.get("bp", ""))
             self.f_wt.setText(str(existing.get("weight_kg", "")))
             self.f_fht.setText(str(existing.get("fht_bpm", "")) if existing.get("fht_bpm") else "")
-            self.f_fh.setText(str(existing.get("fh_cm", "")) if existing.get("fh_cm") else "")
+            self.f_fh.setText(str(existing.get("fh_cm", ""))   if existing.get("fh_cm")   else "")
             idx = self.f_pres.findText(existing.get("presentation", ""))
             if idx >= 0: self.f_pres.setCurrentIndex(idx)
             idx = self.f_risk.findText(existing.get("risk_assessment", ""))
@@ -229,42 +259,45 @@ class PrenatalVisitDialog(_BaseDialog):
 
     def _on_save(self):
         aog = self.f_aog.text().strip()
-        staff = self.f_staff.text().strip()
-        bp = self.f_bp.text().strip()
-        wt = self.f_wt.text().strip()
-        if not all([aog, staff, bp, wt]):
+        bp  = self.f_bp.text().strip()
+        wt  = self.f_wt.text().strip()
+        staff_name = self.f_staff.currentText()
+        staff_id   = self._staff_map.get(staff_name)
+
+        if not all([aog, bp, wt, staff_id]):
             QMessageBox.warning(self, "Missing", "Please fill in all required (*) fields.")
             return
         try:
             aog_v = int(aog)
-            wt_v = float(wt)
+            wt_v  = float(wt)
         except ValueError:
             QMessageBox.warning(self, "Bad input", "AOG must be a whole number; weight must be numeric.")
             return
+
         fht = self.f_fht.text().strip()
-        fh = self.f_fh.text().strip()
+        fh  = self.f_fh.text().strip()
         try:
-            fht_v = int(fht) if fht else None
-            fh_v = float(fh) if fh else None
+            fht_v = int(fht)   if fht else None
+            fh_v  = float(fh)  if fh  else None
         except ValueError:
             QMessageBox.warning(self, "Bad input", "FHT and FH must be numbers if provided.")
             return
 
         self.result_data = {
-            "pregnancy_id":    self.pregnancy_id,
-            "visit_num":       self.next_num if not self.existing else self.existing["visit_num"],
-            "visit_date":      self.f_date.date().toString("yyyy-MM-dd"),
-            "aog_weeks":       aog_v,
-            "staff":           staff,
-            "bp":              bp,
-            "weight_kg":       wt_v,
-            "fht_bpm":         fht_v,
-            "fh_cm":           fh_v,
-            "presentation":    self.f_pres.currentText(),
-            "risk_assessment": self.f_risk.currentText(),
+            "pregnancy_id":        self.pregnancy_id,
+            "visit_num":           self.next_num if not self.existing else self.existing["visit_num"],
+            "visit_date":          self.f_date.date().toString("yyyy-MM-dd"),
+            "gestational_age_weeks": aog_v,          # ← corrected column name
+            "staff_id":            staff_id,          # ← now included (NOT NULL)
+            "staff":               staff_name,        # ← denormalized display copy
+            "blood_pressure":      bp,                # ← corrected column name
+            "weight_kg":           wt_v,
+            "fht_bpm":             fht_v,
+            "fh_cm":               fh_v,
+            "presentation":        self.f_pres.currentText(),
+            "risk_assessment":     self.f_risk.currentText(),
         }
         self.accept()
-
 
 class DiagnosisDialog(QDialog):
     RISK_STYLES = {
@@ -805,11 +838,10 @@ class PrenatalCareScreen(QMainWindow):
             self.load_logo()
             self.ui.patient_combo.hide()
             self.ui.patient_selector_label.hide()
-            # rename the repurposed tab at runtime
+            self.ui.btn_record_visit.hide()          # ← add this line
             self.ui.tab_visit_history.setText("Medications")
             o = ordinal(self._pregnancy_num)
             self.ui.title_label.setText(f"PRENATAL CARE  –  {o.upper()} PREGNANCY")
-            # relabel the "add prescription" button to match the active tab
             self._update_tab_styles()
             self._update_add_btn_label()
             self.load_patient_info_by_pregnancy()
@@ -915,8 +947,9 @@ class PrenatalCareScreen(QMainWindow):
         lay = self.ui.scroll_layout
         while lay.count() > 1:
             item = lay.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+            widget = item.widget()
+            if widget is not None:
+                widget.setParent(None)
 
     # ── patient header ────────────────────────────────────────────────────────
     def load_patient_info_by_pregnancy(self):
@@ -952,14 +985,18 @@ class PrenatalCareScreen(QMainWindow):
     # ═══════════════════════════════════════════════════════════════════════
 
     def _load_prenatal_visits(self):
+        self._clear_scroll()
+
         conn = get_connection()
         if not conn: return
         try:
             cur = conn.cursor()
             cur.execute("""
-                SELECT visit_id, pregnancy_id, visit_num, visit_date, aog_weeks,
-                       staff, bp, weight_kg, fht_bpm, fh_cm,
-                       presentation, risk_assessment
+                SELECT visit_id, pregnancy_id, visit_num, visit_date,
+                    gestational_age_weeks,
+                    staff, blood_pressure,
+                    weight_kg, fht_bpm, fh_cm,
+                    presentation, risk_assessment
                 FROM prenatal_visit
                 WHERE pregnancy_id = %s
                 ORDER BY visit_num DESC
@@ -971,14 +1008,15 @@ class PrenatalCareScreen(QMainWindow):
             if conn: conn.close()
             rows = []
 
-        lay = self.ui.scroll_layout
-        cols = ["visit_id","pregnancy_id","visit_num","visit_date","aog_weeks",
-                "staff","bp","weight_kg","fht_bpm","fh_cm","presentation","risk_assessment"]
+        cols = ["visit_id", "pregnancy_id", "visit_num", "visit_date", "aog_weeks",
+                "staff", "bp", "weight_kg", "fht_bpm", "fh_cm",
+                "presentation", "risk_assessment"]
 
         if not rows:
             self._empty_msg("No prenatal visits yet. Click '+ Record Visit' to add the first one.")
             return
 
+        lay = self.ui.scroll_layout
         for row in rows:
             v = dict(zip(cols, row))
             card = VisitCard(v,
@@ -1040,10 +1078,13 @@ class PrenatalCareScreen(QMainWindow):
             cur = conn.cursor()
             cur.execute("""
                 INSERT INTO prenatal_visit
-                    (pregnancy_id, visit_num, visit_date, aog_weeks, staff,
-                     bp, weight_kg, fht_bpm, fh_cm, presentation, risk_assessment)
-                VALUES (%(pregnancy_id)s,%(visit_num)s,%(visit_date)s,%(aog_weeks)s,%(staff)s,
-                        %(bp)s,%(weight_kg)s,%(fht_bpm)s,%(fh_cm)s,%(presentation)s,%(risk_assessment)s)
+                    (pregnancy_id, visit_num, visit_date, gestational_age_weeks,
+                    staff_id, staff, blood_pressure, weight_kg,
+                    fht_bpm, fh_cm, presentation, risk_assessment)
+                VALUES
+                    (%(pregnancy_id)s, %(visit_num)s, %(visit_date)s, %(gestational_age_weeks)s,
+                    %(staff_id)s, %(staff)s, %(blood_pressure)s, %(weight_kg)s,
+                    %(fht_bpm)s, %(fh_cm)s, %(presentation)s, %(risk_assessment)s)
             """, data)
             conn.commit(); conn.close()
             self._load_prenatal_visits()
@@ -1058,10 +1099,17 @@ class PrenatalCareScreen(QMainWindow):
             cur = conn.cursor()
             cur.execute("""
                 UPDATE prenatal_visit SET
-                    visit_date=%(visit_date)s, aog_weeks=%(aog_weeks)s, staff=%(staff)s,
-                    bp=%(bp)s, weight_kg=%(weight_kg)s, fht_bpm=%(fht_bpm)s, fh_cm=%(fh_cm)s,
-                    presentation=%(presentation)s, risk_assessment=%(risk_assessment)s
-                WHERE visit_id=%(visit_id)s
+                    visit_date            = %(visit_date)s,
+                    gestational_age_weeks = %(gestational_age_weeks)s,
+                    staff_id              = %(staff_id)s,
+                    staff                 = %(staff)s,
+                    blood_pressure        = %(blood_pressure)s,
+                    weight_kg             = %(weight_kg)s,
+                    fht_bpm               = %(fht_bpm)s,
+                    fh_cm                 = %(fh_cm)s,
+                    presentation          = %(presentation)s,
+                    risk_assessment       = %(risk_assessment)s
+                WHERE visit_id = %(visit_id)s
             """, {**data, "visit_id": visit_id})
             conn.commit(); conn.close()
             self._load_prenatal_visits()

@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (
-    QMainWindow, QMessageBox, QWidget, QHBoxLayout, QVBoxLayout,
+    QMainWindow, QMessageBox, QTimeEdit, QWidget, QHBoxLayout, QVBoxLayout,
     QLabel, QPushButton, QFrame, QDialog, QFormLayout, QLineEdit,
     QComboBox, QDateEdit, QSizePolicy, QTableWidget, QTableWidgetItem,
     QHeaderView, QTextEdit
@@ -167,11 +167,18 @@ class _BaseDialog(QDialog):
         w.setDate(default or QDate.currentDate())
         w.setStyleSheet(FIELD_STYLE)
         return w
-
     def _row(self, label, widget):
         lbl = QLabel(label)
         lbl.setStyleSheet(LBL_STYLE)
         self.form.addRow(lbl, widget)
+
+    def _time(self, default=None):
+        from PyQt6.QtCore import QTime
+        w = QTimeEdit()
+        w.setDisplayFormat("hh:mm AP")
+        w.setTime(default or QTime.currentTime())
+        w.setStyleSheet(FIELD_STYLE)
+        return w
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -179,7 +186,7 @@ class _BaseDialog(QDialog):
 # ═══════════════════════════════════════════════════════════════════════════
 
 class PrenatalVisitDialog(_BaseDialog):
-    PRESENTATIONS = ["Cephalic", "Breech", "Transverse", "Oblique"]
+    PRESENTATIONS = ["Cephalic", "Breech", "Transverse"]  # removed Oblique
     RISKS = ["Low Risk", "Moderate Risk", "High Risk"]
 
     def __init__(self, pregnancy_id, next_num, existing=None, parent=None):
@@ -188,10 +195,34 @@ class PrenatalVisitDialog(_BaseDialog):
         self.pregnancy_id = pregnancy_id
         self.next_num = next_num
         self.existing = existing
+        self.staff_map = {}
 
         self.f_date  = self._date()
         self.f_aog   = self._field("e.g. 28")
-        self.f_staff = self._field("e.g. Dr. Reyes")
+
+        # ── staff dropdown (replaces the old free-text field) ──────────────
+        self._staff_map = {}                  # "First Last (Role)" -> staff_id
+        self.f_staff = self._combo([])        # start empty, fill below
+        conn = get_connection()
+        if conn:
+            try:
+                cur = conn.cursor()
+                cur.execute("""
+                    SELECT staff_id,
+                           CONCAT(first_name, ' ', last_name, ' (', role, ')')
+                    FROM staff
+                    WHERE status = 'Active'
+                    ORDER BY last_name, first_name
+                """)
+                for sid, name in cur.fetchall():
+                    self._staff_map[name] = sid
+                    self.f_staff.addItem(name)
+                conn.close()
+            except Exception as e:
+                print(f"staff load error: {e}")
+                if conn: conn.close()
+        # ───────────────────────────────────────────────────────────────────
+
         self.f_bp    = self._field("e.g. 120/80")
         self.f_wt    = self._field("e.g. 62.5")
         self.f_fht   = self._field("e.g. 144  (leave blank if N/A)")
@@ -202,7 +233,7 @@ class PrenatalVisitDialog(_BaseDialog):
         for label, w in [
             ("Visit Date *",       self.f_date),
             ("AOG (weeks) *",      self.f_aog),
-            ("Staff / Doctor *",   self.f_staff),
+            ("Staff / Doctor *",   self.f_staff),   # now a dropdown
             ("Blood Pressure *",   self.f_bp),
             ("Weight (kg) *",      self.f_wt),
             ("FHT (bpm)",          self.f_fht),
@@ -212,59 +243,88 @@ class PrenatalVisitDialog(_BaseDialog):
         ]:
             self._row(label, w)
 
+        # pre-fill when editing an existing visit
         if existing:
             self.f_date.setDate(QDate.fromString(str(existing.get("visit_date", "")), "yyyy-MM-dd"))
             self.f_aog.setText(str(existing.get("aog_weeks", "")))
-            self.f_staff.setText(existing.get("staff", ""))
+
+            # match the saved staff name back to the dropdown
+            saved_staff = existing.get("staff", "")
+            idx = self.f_staff.findText(saved_staff)
+            if idx >= 0:
+                self.f_staff.setCurrentIndex(idx)
+
             self.f_bp.setText(existing.get("bp", ""))
             self.f_wt.setText(str(existing.get("weight_kg", "")))
             self.f_fht.setText(str(existing.get("fht_bpm", "")) if existing.get("fht_bpm") else "")
-            self.f_fh.setText(str(existing.get("fh_cm", "")) if existing.get("fh_cm") else "")
+            self.f_fh.setText(str(existing.get("fh_cm", ""))   if existing.get("fh_cm")   else "")
             idx = self.f_pres.findText(existing.get("presentation", ""))
             if idx >= 0: self.f_pres.setCurrentIndex(idx)
             idx = self.f_risk.findText(existing.get("risk_assessment", ""))
             if idx >= 0: self.f_risk.setCurrentIndex(idx)
 
+        self._load_staff()               # ← called here, after all fields exist
         self._add_buttons(self._on_save)
+
+        # set staff dropdown to existing value AFTER loading
+        if existing and existing.get("staff"):
+            idx = self.f_staff.findText(existing.get("staff", ""))
+            if idx >= 0: self.f_staff.setCurrentIndex(idx)
+
+    def _load_staff(self):
+        conn = get_connection()
+        if not conn: return
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT staff_id, first_name || ' ' || last_name FROM staff ORDER BY last_name")
+            for sid, name in cur.fetchall():
+                self.staff_map[name] = sid
+                self.f_staff.addItem(name)
+            conn.close()
+        except Exception as e:
+            print(f"staff load error: {e}")
+            if conn: conn.close()
 
     def _on_save(self):
         aog = self.f_aog.text().strip()
-        staff = self.f_staff.text().strip()
-        bp = self.f_bp.text().strip()
-        wt = self.f_wt.text().strip()
-        if not all([aog, staff, bp, wt]):
+        bp  = self.f_bp.text().strip()
+        wt  = self.f_wt.text().strip()
+        staff_name = self.f_staff.currentText()
+        staff_id   = self._staff_map.get(staff_name)
+
+        if not all([aog, bp, wt, staff_id]):
             QMessageBox.warning(self, "Missing", "Please fill in all required (*) fields.")
             return
         try:
             aog_v = int(aog)
-            wt_v = float(wt)
+            wt_v  = float(wt)
         except ValueError:
             QMessageBox.warning(self, "Bad input", "AOG must be a whole number; weight must be numeric.")
             return
+
         fht = self.f_fht.text().strip()
-        fh = self.f_fh.text().strip()
+        fh  = self.f_fh.text().strip()
         try:
-            fht_v = int(fht) if fht else None
-            fh_v = float(fh) if fh else None
+            fht_v = int(fht)   if fht else None
+            fh_v  = float(fh)  if fh  else None
         except ValueError:
             QMessageBox.warning(self, "Bad input", "FHT and FH must be numbers if provided.")
             return
 
         self.result_data = {
-            "pregnancy_id":    self.pregnancy_id,
-            "visit_num":       self.next_num if not self.existing else self.existing["visit_num"],
-            "visit_date":      self.f_date.date().toString("yyyy-MM-dd"),
-            "aog_weeks":       aog_v,
-            "staff":           staff,
-            "bp":              bp,
-            "weight_kg":       wt_v,
-            "fht_bpm":         fht_v,
-            "fh_cm":           fh_v,
-            "presentation":    self.f_pres.currentText(),
-            "risk_assessment": self.f_risk.currentText(),
+            "pregnancy_id":        self.pregnancy_id,
+            "visit_num":           self.next_num if not self.existing else self.existing["visit_num"],
+            "visit_date":          self.f_date.date().toString("yyyy-MM-dd"),
+            "gestational_age_weeks": aog_v,          # ← corrected column name
+            "staff_id":            staff_id,          # ← now included (NOT NULL)
+            "staff":               staff_name,        # ← denormalized display copy
+            "blood_pressure":      bp,                # ← corrected column name
+            "weight_kg":           wt_v,
+            "fht_bpm":             fht_v,
+            "fh_cm":               fh_v,
+            "presentation":        self.f_pres.currentText(),
+            "risk_assessment":     self.f_risk.currentText(),
         }
-        self.accept()
-
 
 class DiagnosisDialog(QDialog):
     RISK_STYLES = {
@@ -468,134 +528,178 @@ class MedicationDialog(_BaseDialog):
 # ═══════════════════════════════════════════════════════════════════════════
 
 class DeliveryDialog(_BaseDialog):
-    DELIVERY_TYPES = ["Normal Spontaneous Delivery", "Cesarean Section",
-                      "Assisted Vaginal Delivery", "Other"]
-    OUTCOMES = ["Live Birth", "Stillbirth", "Miscarriage"]
+    DELIVERY_TYPES   = ["Normal", "CS"]
+    DELIVERY_OUTCOMES = ["Completed", "Referred"]
+    BIRTH_OUTCOMES   = ["Live Birth", "Stillbirth"]
 
     def __init__(self, pregnancy_id, existing=None, parent=None):
         super().__init__("Edit Delivery Record" if existing else "Record Delivery", parent)
         self.pregnancy_id = pregnancy_id
         self.existing = existing
 
-        self.f_date         = self._date()
-        self.f_type         = self._combo(self.DELIVERY_TYPES)
-        self.f_outcome      = self._combo(self.OUTCOMES)
-        self.f_attendant    = self._field("e.g. Dr. Reyes")
-        self.f_place        = self._field("e.g. Materna Clinic")
-        self.f_complications = self._field("e.g. None  (leave blank if none)")
-        self.f_notes        = self._field("Additional notes")
+        # staff dropdown
+        self._staff_map = {}
+        self.f_staff = self._combo([])
+        conn = get_connection()
+        if conn:
+            try:
+                cur = conn.cursor()
+                cur.execute("""
+                    SELECT staff_id,
+                           CONCAT(first_name, ' ', last_name, ' (', role, ')')
+                    FROM staff WHERE status = 'Active'
+                    ORDER BY last_name, first_name
+                """)
+                for sid, name in cur.fetchall():
+                    self._staff_map[name] = sid
+                    self.f_staff.addItem(name)
+                conn.close()
+            except Exception as e:
+                print(f"staff load error: {e}")
+                if conn: conn.close()
 
-        self._row("Delivery Date *",   self.f_date)
-        self._row("Delivery Type *",   self.f_type)
-        self._row("Outcome *",         self.f_outcome)
-        self._row("Attendant *",       self.f_attendant)
-        self._row("Place of Delivery", self.f_place)
-        self._row("Complications",     self.f_complications)
-        self._row("Notes",             self.f_notes)
+        self.f_date          = self._date()
+        self.f_time = self._time()
+        self.f_type          = self._combo(self.DELIVERY_TYPES)
+        self.f_outcome       = self._combo(self.DELIVERY_OUTCOMES)
+        self.f_birth_outcome = self._combo(self.BIRTH_OUTCOMES)
+        self.f_location      = self._field("e.g. Materna Clinic")
+        self.f_referred_to   = self._field("e.g. Provincial Hospital (leave blank if none)")
+        self.f_remarks       = self._field("Additional remarks")
+
+        self._row("Delivery Date *",    self.f_date)
+        self._row("Delivery Time *",    self.f_time)
+        self._row("Staff / Attendant *", self.f_staff)
+        self._row("Delivery Type",      self.f_type)
+        self._row("Delivery Outcome *", self.f_outcome)
+        self._row("Birth Outcome",      self.f_birth_outcome)
+        self._row("Delivery Location *", self.f_location)
+        self._row("Referred To",        self.f_referred_to)
+        self._row("Remarks",            self.f_remarks)
 
         if existing:
             d = existing.get("delivery_date")
             if d: self.f_date.setDate(QDate.fromString(str(d), "yyyy-MM-dd"))
+            from PyQt6.QtCore import QTime
+            t = existing.get("delivery_time")
+            if t:
+                self.f_time.setTime(QTime.fromString(str(t)[:5], "HH:mm"))
+            saved_staff = existing.get("staff_display", "")
+            idx = self.f_staff.findText(saved_staff)
+            if idx >= 0: self.f_staff.setCurrentIndex(idx)
             idx = self.f_type.findText(existing.get("delivery_type", ""))
             if idx >= 0: self.f_type.setCurrentIndex(idx)
-            idx = self.f_outcome.findText(existing.get("outcome", ""))
+            idx = self.f_outcome.findText(existing.get("delivery_outcome", ""))
             if idx >= 0: self.f_outcome.setCurrentIndex(idx)
-            self.f_attendant.setText(existing.get("attendant", ""))
-            self.f_place.setText(existing.get("place_of_delivery", "") or "")
-            self.f_complications.setText(existing.get("complications", "") or "")
-            self.f_notes.setText(existing.get("notes", "") or "")
+            idx = self.f_birth_outcome.findText(existing.get("birth_outcome", ""))
+            if idx >= 0: self.f_birth_outcome.setCurrentIndex(idx)
+            self.f_location.setText(existing.get("delivery_location", "") or "")
+            self.f_referred_to.setText(existing.get("referred_to", "") or "")
+            self.f_remarks.setText(existing.get("remarks", "") or "")
 
         self._add_buttons(self._on_save)
 
     def _on_save(self):
-        attendant = self.f_attendant.text().strip()
-        if not attendant:
-            QMessageBox.warning(self, "Missing", "Attendant is required.")
+        staff_name = self.f_staff.currentText()
+        staff_id   = self._staff_map.get(staff_name)
+        location   = self.f_location.text().strip()
+        time_str = self.f_time.time().toString("HH:mm:ss")
+
+        if not all([staff_id, location]):
+            QMessageBox.warning(self, "Missing", "Staff, delivery time, and location are required.")
             return
+
         self.result_data = {
-            "pregnancy_id":   self.pregnancy_id,
-            "delivery_date":  self.f_date.date().toString("yyyy-MM-dd"),
-            "delivery_type":  self.f_type.currentText(),
-            "outcome":        self.f_outcome.currentText(),
-            "attendant":      attendant,
-            "place_of_delivery": self.f_place.text().strip() or None,
-            "complications":  self.f_complications.text().strip() or None,
-            "notes":          self.f_notes.text().strip() or None,
+            "pregnancy_id":      self.pregnancy_id,
+            "staff_id":          staff_id,
+            "staff_display":     staff_name,
+            "delivery_date":     self.f_date.date().toString("yyyy-MM-dd"),
+            "delivery_time":     time_str,
+            "delivery_type":     self.f_type.currentText(),
+            "delivery_outcome":  self.f_outcome.currentText(),
+            "birth_outcome":     self.f_birth_outcome.currentText(),
+            "delivery_location": location,
+            "referred_to":       self.f_referred_to.text().strip() or None,
+            "remarks":           self.f_remarks.text().strip() or None,
         }
         self.accept()
 
-
 class NewbornDialog(_BaseDialog):
-    SEX = ["Female", "Male", "Undetermined"]
+    SEX = ["Male", "Female"]   # matches DB check constraint
 
-    def __init__(self, pregnancy_id, existing=None, parent=None):
+    def __init__(self, delivery_id, pregnancy_id, delivery_time=None, existing=None, parent=None):
         super().__init__("Edit Newborn Record" if existing else "Record Newborn", parent)
+        self.delivery_id  = delivery_id
         self.pregnancy_id = pregnancy_id
-        self.existing = existing
+        self.existing     = existing
 
-        self.f_name     = self._field("e.g. Baby Girl Santos")
-        self.f_dob      = self._date()
-        self.f_sex      = self._combo(self.SEX)
-        self.f_weight   = self._field("e.g. 3.2")
-        self.f_length   = self._field("e.g. 50  (cm)")
-        self.f_apgar1   = self._field("e.g. 8")
-        self.f_apgar5   = self._field("e.g. 9")
-        self.f_notes    = self._field("Additional notes")
+        self.f_last_name  = self._field("e.g. Santos")
+        self.f_first_name = self._field("e.g. Baby Girl")
+        self.f_dob        = self._date()
+        self.f_tob        = self._time(delivery_time)   # QTimeEdit, defaults to delivery time
+        self.f_sex        = self._combo(self.SEX)
+        self.f_weight     = self._field("e.g. 3.2  (kg)")
+        self.f_length     = self._field("e.g. 50  (cm)")
+        self.f_apgar      = self._field("e.g. 8  (0-10)")
 
-        self._row("Baby's Name",     self.f_name)
-        self._row("Date of Birth",   self.f_dob)
-        self._row("Sex *",           self.f_sex)
-        self._row("Weight (kg) *",   self.f_weight)
-        self._row("Length (cm)",     self.f_length)
-        self._row("APGAR Score (1 min)", self.f_apgar1)
-        self._row("APGAR Score (5 min)", self.f_apgar5)
-        self._row("Notes",           self.f_notes)
+        self._row("Last Name *",       self.f_last_name)
+        self._row("First Name *",      self.f_first_name)
+        self._row("Date of Birth",     self.f_dob)
+        self._row("Time of Birth *",   self.f_tob)
+        self._row("Sex *",             self.f_sex)
+        self._row("Weight (kg) *",     self.f_weight)
+        self._row("Length (cm) *",     self.f_length)
+        self._row("APGAR Score (0-10) *", self.f_apgar)
 
         if existing:
-            self.f_name.setText(existing.get("baby_name", "") or "")
+            self.f_last_name.setText(existing.get("baby_last_name", ""))
+            self.f_first_name.setText(existing.get("baby_first_name", ""))
             d = existing.get("date_of_birth")
             if d: self.f_dob.setDate(QDate.fromString(str(d), "yyyy-MM-dd"))
+            from PyQt6.QtCore import QTime
+            t = existing.get("time_of_birth")
+            if t:
+                self.f_tob.setTime(QTime(t.hour, t.minute) if hasattr(t, 'hour') else QTime.fromString(str(t)[:5], "HH:mm"))
             idx = self.f_sex.findText(existing.get("sex", ""))
             if idx >= 0: self.f_sex.setCurrentIndex(idx)
             self.f_weight.setText(str(existing.get("birth_weight_kg", "")) if existing.get("birth_weight_kg") else "")
             self.f_length.setText(str(existing.get("birth_length_cm", "")) if existing.get("birth_length_cm") else "")
-            self.f_apgar1.setText(str(existing.get("apgar_1min", "")) if existing.get("apgar_1min") is not None else "")
-            self.f_apgar5.setText(str(existing.get("apgar_5min", "")) if existing.get("apgar_5min") is not None else "")
-            self.f_notes.setText(existing.get("notes", "") or "")
+            self.f_apgar.setText(str(existing.get("apgar_score", "")) if existing.get("apgar_score") is not None else "")
 
         self._add_buttons(self._on_save)
 
     def _on_save(self):
-        wt = self.f_weight.text().strip()
-        sex = self.f_sex.currentText()
-        if not wt:
-            QMessageBox.warning(self, "Missing", "Birth weight is required.")
+        last  = self.f_last_name.text().strip()
+        first = self.f_first_name.text().strip()
+        tob = self.f_tob.time().toString("HH:mm:ss")
+        wt    = self.f_weight.text().strip()
+        ln    = self.f_length.text().strip()
+        apgar = self.f_apgar.text().strip()
+
+        if not all([last, first, wt, ln, apgar]):   # ← removed tob
+            QMessageBox.warning(self, "Missing", "All required fields must be filled.")
             return
         try:
-            wt_v = float(wt)
+            wt_v    = float(wt)
+            ln_v    = float(ln)
+            apgar_v = int(apgar)
+            if not (0 <= apgar_v <= 10):
+                raise ValueError
         except ValueError:
-            QMessageBox.warning(self, "Bad input", "Weight must be a number.")
+            QMessageBox.warning(self, "Bad input", "Weight/length must be numbers; APGAR must be 0–10.")
             return
-        a1 = self.f_apgar1.text().strip()
-        a5 = self.f_apgar5.text().strip()
-        ln = self.f_length.text().strip()
-        try:
-            a1_v = int(a1) if a1 else None
-            a5_v = int(a5) if a5 else None
-            ln_v = float(ln) if ln else None
-        except ValueError:
-            QMessageBox.warning(self, "Bad input", "APGAR scores must be whole numbers; length must be numeric.")
-            return
+
         self.result_data = {
+            "delivery_id":     self.delivery_id,
             "pregnancy_id":    self.pregnancy_id,
-            "baby_name":       self.f_name.text().strip() or None,
+            "baby_last_name":  last,
+            "baby_first_name": first,
             "date_of_birth":   self.f_dob.date().toString("yyyy-MM-dd"),
-            "sex":             sex,
+            "time_of_birth":   tob,
+            "sex":             self.f_sex.currentText(),
             "birth_weight_kg": wt_v,
             "birth_length_cm": ln_v,
-            "apgar_1min":      a1_v,
-            "apgar_5min":      a5_v,
-            "notes":           self.f_notes.text().strip() or None,
+            "apgar_score":     apgar_v,
         }
         self.accept()
 
@@ -805,11 +909,10 @@ class PrenatalCareScreen(QMainWindow):
             self.load_logo()
             self.ui.patient_combo.hide()
             self.ui.patient_selector_label.hide()
-            # rename the repurposed tab at runtime
+            self.ui.btn_record_visit.hide()          # ← add this line
             self.ui.tab_visit_history.setText("Medications")
             o = ordinal(self._pregnancy_num)
             self.ui.title_label.setText(f"PRENATAL CARE  –  {o.upper()} PREGNANCY")
-            # relabel the "add prescription" button to match the active tab
             self._update_tab_styles()
             self._update_add_btn_label()
             self.load_patient_info_by_pregnancy()
@@ -915,8 +1018,9 @@ class PrenatalCareScreen(QMainWindow):
         lay = self.ui.scroll_layout
         while lay.count() > 1:
             item = lay.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+            widget = item.widget()
+            if widget is not None:
+                widget.setParent(None)
 
     # ── patient header ────────────────────────────────────────────────────────
     def load_patient_info_by_pregnancy(self):
@@ -952,14 +1056,18 @@ class PrenatalCareScreen(QMainWindow):
     # ═══════════════════════════════════════════════════════════════════════
 
     def _load_prenatal_visits(self):
+        self._clear_scroll()
+
         conn = get_connection()
         if not conn: return
         try:
             cur = conn.cursor()
             cur.execute("""
-                SELECT visit_id, pregnancy_id, visit_num, visit_date, aog_weeks,
-                       staff, bp, weight_kg, fht_bpm, fh_cm,
-                       presentation, risk_assessment
+                SELECT visit_id, pregnancy_id, visit_num, visit_date,
+                    gestational_age_weeks,
+                    staff, blood_pressure,
+                    weight_kg, fht_bpm, fh_cm,
+                    presentation, risk_assessment
                 FROM prenatal_visit
                 WHERE pregnancy_id = %s
                 ORDER BY visit_num DESC
@@ -971,14 +1079,15 @@ class PrenatalCareScreen(QMainWindow):
             if conn: conn.close()
             rows = []
 
-        lay = self.ui.scroll_layout
-        cols = ["visit_id","pregnancy_id","visit_num","visit_date","aog_weeks",
-                "staff","bp","weight_kg","fht_bpm","fh_cm","presentation","risk_assessment"]
+        cols = ["visit_id", "pregnancy_id", "visit_num", "visit_date", "aog_weeks",
+                "staff", "bp", "weight_kg", "fht_bpm", "fh_cm",
+                "presentation", "risk_assessment"]
 
         if not rows:
             self._empty_msg("No prenatal visits yet. Click '+ Record Visit' to add the first one.")
             return
 
+        lay = self.ui.scroll_layout
         for row in rows:
             v = dict(zip(cols, row))
             card = VisitCard(v,
@@ -1040,10 +1149,13 @@ class PrenatalCareScreen(QMainWindow):
             cur = conn.cursor()
             cur.execute("""
                 INSERT INTO prenatal_visit
-                    (pregnancy_id, visit_num, visit_date, aog_weeks, staff,
-                     bp, weight_kg, fht_bpm, fh_cm, presentation, risk_assessment)
-                VALUES (%(pregnancy_id)s,%(visit_num)s,%(visit_date)s,%(aog_weeks)s,%(staff)s,
-                        %(bp)s,%(weight_kg)s,%(fht_bpm)s,%(fh_cm)s,%(presentation)s,%(risk_assessment)s)
+                    (pregnancy_id, visit_num, visit_date, gestational_age_weeks,
+                    staff_id, staff, blood_pressure, weight_kg,
+                    fht_bpm, fh_cm, presentation, risk_assessment)
+                VALUES
+                    (%(pregnancy_id)s, %(visit_num)s, %(visit_date)s, %(gestational_age_weeks)s,
+                    %(staff_id)s, %(staff)s, %(blood_pressure)s, %(weight_kg)s,
+                    %(fht_bpm)s, %(fh_cm)s, %(presentation)s, %(risk_assessment)s)
             """, data)
             conn.commit(); conn.close()
             self._load_prenatal_visits()
@@ -1058,10 +1170,17 @@ class PrenatalCareScreen(QMainWindow):
             cur = conn.cursor()
             cur.execute("""
                 UPDATE prenatal_visit SET
-                    visit_date=%(visit_date)s, aog_weeks=%(aog_weeks)s, staff=%(staff)s,
-                    bp=%(bp)s, weight_kg=%(weight_kg)s, fht_bpm=%(fht_bpm)s, fh_cm=%(fh_cm)s,
-                    presentation=%(presentation)s, risk_assessment=%(risk_assessment)s
-                WHERE visit_id=%(visit_id)s
+                    visit_date            = %(visit_date)s,
+                    gestational_age_weeks = %(gestational_age_weeks)s,
+                    staff_id              = %(staff_id)s,
+                    staff                 = %(staff)s,
+                    blood_pressure        = %(blood_pressure)s,
+                    weight_kg             = %(weight_kg)s,
+                    fht_bpm               = %(fht_bpm)s,
+                    fh_cm                 = %(fh_cm)s,
+                    presentation          = %(presentation)s,
+                    risk_assessment       = %(risk_assessment)s
+                WHERE visit_id = %(visit_id)s
             """, {**data, "visit_id": visit_id})
             conn.commit(); conn.close()
             self._load_prenatal_visits()
@@ -1290,22 +1409,27 @@ class PrenatalCareScreen(QMainWindow):
     # ═══════════════════════════════════════════════════════════════════════
     # DELIVERY & NEWBORN TAB
     # ═══════════════════════════════════════════════════════════════════════
-
     def _load_delivery(self):
         conn = get_connection()
         if not conn: return
         try:
             cur = conn.cursor()
             cur.execute("""
-                SELECT delivery_id, pregnancy_id, delivery_date, delivery_type,
-                       outcome, attendant, place_of_delivery, complications, notes
-                FROM delivery_record WHERE pregnancy_id=%s
+                SELECT dr.delivery_id, dr.pregnancy_id, dr.delivery_date, dr.delivery_time,
+                    dr.delivery_type, dr.delivery_outcome, dr.birth_outcome,
+                    dr.delivery_location, dr.referred_to, dr.remarks,
+                    CONCAT(s.first_name, ' ', s.last_name, ' (', s.role, ')') as staff_display
+                FROM delivery_record dr
+                LEFT JOIN staff s ON dr.staff_id = s.staff_id
+                WHERE dr.pregnancy_id = %s
             """, (self._pregnancy_id,))
             deliveries = cur.fetchall()
+
             cur.execute("""
-                SELECT newborn_id, pregnancy_id, baby_name, date_of_birth, sex,
-                       birth_weight_kg, birth_length_cm, apgar_1min, apgar_5min, notes
-                FROM newborn_record WHERE pregnancy_id=%s
+                SELECT newborn_id, delivery_id, pregnancy_id, baby_last_name,
+                    baby_first_name, sex, birth_weight_kg, birth_length_cm,
+                    apgar_score, date_of_birth, time_of_birth
+                FROM newborn WHERE pregnancy_id = %s
             """, (self._pregnancy_id,))
             newborns = cur.fetchall()
             conn.close()
@@ -1315,12 +1439,13 @@ class PrenatalCareScreen(QMainWindow):
             deliveries, newborns = [], []
 
         lay = self.ui.scroll_layout
-        d_cols = ["delivery_id","pregnancy_id","delivery_date","delivery_type",
-                  "outcome","attendant","place_of_delivery","complications","notes"]
-        n_cols = ["newborn_id","pregnancy_id","baby_name","date_of_birth","sex",
-                  "birth_weight_kg","birth_length_cm","apgar_1min","apgar_5min","notes"]
+        d_cols = ["delivery_id","pregnancy_id","delivery_date","delivery_time",
+                "delivery_type","delivery_outcome","birth_outcome",
+                "delivery_location","referred_to","remarks","staff_display"]
+        n_cols = ["newborn_id","delivery_id","pregnancy_id","baby_last_name",
+                "baby_first_name","sex","birth_weight_kg","birth_length_cm",
+                "apgar_score","date_of_birth","time_of_birth"]
 
-        # delivery section header
         hdr = self._section_header("Delivery Record", self._add_delivery)
         lay.insertWidget(lay.count() - 1, hdr)
 
@@ -1332,7 +1457,6 @@ class PrenatalCareScreen(QMainWindow):
         else:
             lay.insertWidget(lay.count() - 1, self._inline_msg("No delivery record yet."))
 
-        # newborn section header
         hdr2 = self._section_header("Newborn Record(s)", self._add_newborn)
         lay.insertWidget(lay.count() - 1, hdr2)
 
@@ -1353,10 +1477,12 @@ class PrenatalCareScreen(QMainWindow):
                 cur = conn.cursor()
                 cur.execute("""
                     INSERT INTO delivery_record
-                        (pregnancy_id, delivery_date, delivery_type, outcome,
-                         attendant, place_of_delivery, complications, notes)
-                    VALUES (%(pregnancy_id)s,%(delivery_date)s,%(delivery_type)s,%(outcome)s,
-                            %(attendant)s,%(place_of_delivery)s,%(complications)s,%(notes)s)
+                        (pregnancy_id, staff_id, delivery_date, delivery_time,
+                        delivery_type, delivery_outcome, birth_outcome,
+                        delivery_location, referred_to, remarks)
+                    VALUES (%(pregnancy_id)s, %(staff_id)s, %(delivery_date)s, %(delivery_time)s,
+                            %(delivery_type)s, %(delivery_outcome)s, %(birth_outcome)s,
+                            %(delivery_location)s, %(referred_to)s, %(remarks)s)
                 """, dlg.result_data)
                 conn.commit(); conn.close()
                 self._switch_tab(TAB_DELIVERY)
@@ -1372,17 +1498,114 @@ class PrenatalCareScreen(QMainWindow):
             try:
                 cur = conn.cursor()
                 cur.execute("""
-                    UPDATE delivery_record SET delivery_date=%(delivery_date)s,
-                        delivery_type=%(delivery_type)s, outcome=%(outcome)s,
-                        attendant=%(attendant)s, place_of_delivery=%(place_of_delivery)s,
-                        complications=%(complications)s, notes=%(notes)s
-                    WHERE delivery_id=%(delivery_id)s
+                    UPDATE delivery_record SET
+                        staff_id          = %(staff_id)s,
+                        delivery_date     = %(delivery_date)s,
+                        delivery_time     = %(delivery_time)s,
+                        delivery_type     = %(delivery_type)s,
+                        delivery_outcome  = %(delivery_outcome)s,
+                        birth_outcome     = %(birth_outcome)s,
+                        delivery_location = %(delivery_location)s,
+                        referred_to       = %(referred_to)s,
+                        remarks           = %(remarks)s
+                    WHERE delivery_id = %(delivery_id)s
                 """, {**dlg.result_data, "delivery_id": rec["delivery_id"]})
                 conn.commit(); conn.close()
                 self._switch_tab(TAB_DELIVERY)
             except Exception as e:
                 QMessageBox.critical(self, "Error", str(e))
                 if conn: conn.close()
+
+    def _add_newborn(self):
+        conn = get_connection()
+        delivery_id = None
+        delivery_time = None
+        if conn:
+            try:
+                cur = conn.cursor()
+                cur.execute("""
+                    SELECT delivery_id, delivery_time FROM delivery_record
+                    WHERE pregnancy_id = %s
+                    ORDER BY delivery_id DESC LIMIT 1
+                """, (self._pregnancy_id,))
+                row = cur.fetchone()
+                if row:
+                    delivery_id   = row[0]
+                    delivery_time = row[1]   # datetime.time object from psycopg2
+                conn.close()
+            except Exception as e:
+                print(f"delivery_id fetch error: {e}")
+                if conn: conn.close()
+
+        if not delivery_id:
+            QMessageBox.warning(self, "No Delivery", "Please add a delivery record first.")
+            return
+
+        # convert Python time → QTime
+        from PyQt6.QtCore import QTime
+        qt_time = QTime(delivery_time.hour, delivery_time.minute) if delivery_time else QTime.currentTime()
+
+        dlg = NewbornDialog(delivery_id, self._pregnancy_id, delivery_time=qt_time, parent=self)
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            conn = get_connection()
+            if not conn: return
+            try:
+                cur = conn.cursor()
+                cur.execute("""
+                    INSERT INTO newborn
+                        (delivery_id, pregnancy_id, baby_last_name, baby_first_name,
+                         sex, birth_weight_kg, birth_length_cm, apgar_score,
+                         date_of_birth, time_of_birth)
+                    VALUES (%(delivery_id)s, %(pregnancy_id)s, %(baby_last_name)s, %(baby_first_name)s,
+                            %(sex)s, %(birth_weight_kg)s, %(birth_length_cm)s, %(apgar_score)s,
+                            %(date_of_birth)s, %(time_of_birth)s)
+                """, dlg.result_data)
+                conn.commit(); conn.close()
+                self._switch_tab(TAB_DELIVERY)
+            except Exception as e:
+                QMessageBox.critical(self, "Error", str(e))
+                if conn: conn.close()
+        
+    def _edit_newborn(self, rec: dict):
+        dlg = NewbornDialog(rec["delivery_id"], self._pregnancy_id, existing=rec, parent=self)
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            conn = get_connection()
+            if not conn: return
+            try:
+                cur = conn.cursor()
+                cur.execute("""
+                    UPDATE newborn SET
+                        baby_last_name  = %(baby_last_name)s,
+                        baby_first_name = %(baby_first_name)s,
+                        date_of_birth   = %(date_of_birth)s,
+                        time_of_birth   = %(time_of_birth)s,
+                        sex             = %(sex)s,
+                        birth_weight_kg = %(birth_weight_kg)s,
+                        birth_length_cm = %(birth_length_cm)s,
+                        apgar_score     = %(apgar_score)s
+                    WHERE newborn_id = %(newborn_id)s
+                """, {**dlg.result_data, "newborn_id": rec["newborn_id"]})
+                conn.commit(); conn.close()
+                self._switch_tab(TAB_DELIVERY)
+            except Exception as e:
+                QMessageBox.critical(self, "Error", str(e))
+                if conn: conn.close()
+
+    def _delete_newborn(self, rec: dict):
+        name = f"{rec.get('baby_first_name','')} {rec.get('baby_last_name','')}".strip() or "this baby"
+        if QMessageBox.question(self, "Delete", f"Delete newborn record for {name}?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        ) != QMessageBox.StandardButton.Yes: return
+        conn = get_connection()
+        if not conn: return
+        try:
+            cur = conn.cursor()
+            cur.execute("DELETE FROM newborn WHERE newborn_id=%s", (rec["newborn_id"],))
+            conn.commit(); conn.close()
+            self._switch_tab(TAB_DELIVERY)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+            if conn: conn.close()
 
     def _delete_delivery(self, rec: dict):
         if QMessageBox.question(self, "Delete", "Delete this delivery record?",
@@ -1393,60 +1616,6 @@ class PrenatalCareScreen(QMainWindow):
         try:
             cur = conn.cursor()
             cur.execute("DELETE FROM delivery_record WHERE delivery_id=%s", (rec["delivery_id"],))
-            conn.commit(); conn.close()
-            self._switch_tab(TAB_DELIVERY)
-        except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
-            if conn: conn.close()
-
-    def _add_newborn(self):
-        dlg = NewbornDialog(self._pregnancy_id, parent=self)
-        if dlg.exec() == QDialog.DialogCode.Accepted:
-            conn = get_connection()
-            if not conn: return
-            try:
-                cur = conn.cursor()
-                cur.execute("""
-                    INSERT INTO newborn_record
-                        (pregnancy_id, baby_name, date_of_birth, sex,
-                         birth_weight_kg, birth_length_cm, apgar_1min, apgar_5min, notes)
-                    VALUES (%(pregnancy_id)s,%(baby_name)s,%(date_of_birth)s,%(sex)s,
-                            %(birth_weight_kg)s,%(birth_length_cm)s,%(apgar_1min)s,%(apgar_5min)s,%(notes)s)
-                """, dlg.result_data)
-                conn.commit(); conn.close()
-                self._switch_tab(TAB_DELIVERY)
-            except Exception as e:
-                QMessageBox.critical(self, "Error", str(e))
-                if conn: conn.close()
-
-    def _edit_newborn(self, rec: dict):
-        dlg = NewbornDialog(self._pregnancy_id, existing=rec, parent=self)
-        if dlg.exec() == QDialog.DialogCode.Accepted:
-            conn = get_connection()
-            if not conn: return
-            try:
-                cur = conn.cursor()
-                cur.execute("""
-                    UPDATE newborn_record SET baby_name=%(baby_name)s, date_of_birth=%(date_of_birth)s,
-                        sex=%(sex)s, birth_weight_kg=%(birth_weight_kg)s, birth_length_cm=%(birth_length_cm)s,
-                        apgar_1min=%(apgar_1min)s, apgar_5min=%(apgar_5min)s, notes=%(notes)s
-                    WHERE newborn_id=%(newborn_id)s
-                """, {**dlg.result_data, "newborn_id": rec["newborn_id"]})
-                conn.commit(); conn.close()
-                self._switch_tab(TAB_DELIVERY)
-            except Exception as e:
-                QMessageBox.critical(self, "Error", str(e))
-                if conn: conn.close()
-
-    def _delete_newborn(self, rec: dict):
-        if QMessageBox.question(self, "Delete", f"Delete newborn record for {rec.get('baby_name','this baby')}?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-        ) != QMessageBox.StandardButton.Yes: return
-        conn = get_connection()
-        if not conn: return
-        try:
-            cur = conn.cursor()
-            cur.execute("DELETE FROM newborn_record WHERE newborn_id=%s", (rec["newborn_id"],))
             conn.commit(); conn.close()
             self._switch_tab(TAB_DELIVERY)
         except Exception as e:
@@ -1481,12 +1650,13 @@ class PrenatalCareScreen(QMainWindow):
             l.setTextFormat(Qt.TextFormat.RichText)
             l.setStyleSheet("color: rgb(21,23,61); font-size: 11px; border: none;")
             return l
-        info.addWidget(stat("Outcome:", d.get("outcome","—")))
-        info.addWidget(stat("Attendant:", d.get("attendant","—")))
-        if d.get("place_of_delivery"):
-            info.addWidget(stat("Place:", d["place_of_delivery"]))
-        if d.get("complications"):
-            info.addWidget(stat("Complications:", d["complications"]))
+        info.addWidget(stat("Outcome:", d.get("delivery_outcome","—")))
+        info.addWidget(stat("Birth:", d.get("birth_outcome","—")))
+        info.addWidget(stat("Attendant:", d.get("staff_display","—")))
+        if d.get("delivery_location"):
+            info.addWidget(stat("Location:", d["delivery_location"]))
+        if d.get("referred_to"):
+            info.addWidget(stat("Referred to:", d["referred_to"]))
         info.addStretch()
         lay.addLayout(info)
         return card
@@ -1499,7 +1669,7 @@ class PrenatalCareScreen(QMainWindow):
         lay.setSpacing(6)
 
         top = QHBoxLayout()
-        name = n.get("baby_name") or "Baby"
+        name = f"{n.get('baby_first_name','')} {n.get('baby_last_name','')}".strip() or "Baby"
         t = QLabel(f"{name}  –  {n.get('sex','—')}")
         t.setStyleSheet("color: rgb(21,23,61); font-size: 13px; font-weight: bold; border: none;")
         btn_e = QPushButton("Edit")
@@ -1520,14 +1690,13 @@ class PrenatalCareScreen(QMainWindow):
             l.setStyleSheet("color: rgb(21,23,61); font-size: 11px; border: none;")
             return l
         info.addWidget(stat("DOB:", fmt_date(n.get("date_of_birth",""))))
+        info.addWidget(stat("Time:", str(n.get("time_of_birth","—"))))
         if n.get("birth_weight_kg"): info.addWidget(stat("Weight:", f"{n['birth_weight_kg']} kg"))
         if n.get("birth_length_cm"): info.addWidget(stat("Length:", f"{n['birth_length_cm']} cm"))
-        if n.get("apgar_1min") is not None: info.addWidget(stat("APGAR 1min:", str(n["apgar_1min"])))
-        if n.get("apgar_5min") is not None: info.addWidget(stat("APGAR 5min:", str(n["apgar_5min"])))
+        if n.get("apgar_score") is not None: info.addWidget(stat("APGAR:", str(n["apgar_score"])))
         info.addStretch()
         lay.addLayout(info)
         return card
-
     # ── small UI helpers ──────────────────────────────────────────────────────
     def _empty_msg(self, text):
         lbl = QLabel(text)

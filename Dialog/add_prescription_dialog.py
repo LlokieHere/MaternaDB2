@@ -20,17 +20,39 @@ BTN_PLAIN  = "border-radius: 10px; border: 1px solid rgb(26,26,62); padding: 6px
 
 
 class AddPrescriptionDialog(QDialog):
-    def __init__(self, patient_id, parent=None):
+    def __init__(self, patient_id, existing=None, parent=None):
         super().__init__(parent)
         self.patient_id = patient_id
-        self.medicines  = []     # staged list of dicts
-        self.staff_map  = {}     # display name → staff_id
+        self.existing   = existing
+        self.medicines  = []
+        self.staff_map  = {}
+        self._prefill_staff_id = None
 
-        self.setWindowTitle("Add Prescription")
+        self.setWindowTitle("Edit Prescription" if existing else "Add Prescription")
         self.setMinimumWidth(540)
         self.setup_ui()
         self.load_staff()
         self.load_medicine_suggestions()
+
+        if existing:
+            d = existing.get("prescription_date")
+            if d:
+                self.date_input.setDate(
+                    QDate(d.year, d.month, d.day) if hasattr(d, "year")
+                    else QDate.fromString(str(d), "yyyy-MM-dd")
+                )
+            self._prefill_staff_id = existing.get("staff_id")
+            self.medicine_input.setText(existing.get("medicine_name", ""))
+            self.dosage_input.setText(existing.get("dosage", ""))
+            self.frequency_input.setText(existing.get("frequency", ""))
+            self.duration_input.setText(existing.get("duration", ""))
+            self.route_input.setText(existing.get("route", "") or "")
+            self.timing_input.setText(existing.get("timing", "") or "")
+            self.notes_input.setText(existing.get("notes", "") or "")
+
+            self.add_medicine_btn.hide()
+            self.medicine_table.hide()
+            self.remove_btn.hide()
 
     # ─────────────────────────────────────────────
     #  UI
@@ -40,7 +62,6 @@ class AddPrescriptionDialog(QDialog):
         layout.setSpacing(10)
         layout.setContentsMargins(20, 20, 20, 20)
 
-        # Title
         title = QLabel("Add Prescription")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("font-size: 18px; font-weight: bold; border: none;")
@@ -67,7 +88,7 @@ class AddPrescriptionDialog(QDialog):
 
         layout.addLayout(row1)
 
-        # ── Row 2: Medicine (free text + autocomplete) + Dosage ──────────────
+        # ── Row 2: Medicine + Dosage ──────────────────────────────────────────
         row2 = QHBoxLayout()
 
         med_col = QVBoxLayout()
@@ -75,13 +96,10 @@ class AddPrescriptionDialog(QDialog):
         self.medicine_input = QLineEdit()
         self.medicine_input.setPlaceholderText("Type medicine name…")
         self.medicine_input.setStyleSheet(STYLE)
-
-        # Autocomplete — populated from DB suggestions, but fully editable
         self.medicine_completer = QCompleter([])
         self.medicine_completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.medicine_completer.setFilterMode(Qt.MatchFlag.MatchContains)
         self.medicine_input.setCompleter(self.medicine_completer)
-
         med_col.addWidget(self.medicine_input)
         row2.addLayout(med_col)
 
@@ -211,17 +229,19 @@ class AddPrescriptionDialog(QDialog):
                 self.staff_map[name] = staff_id
                 self.prescribed_combo.addItem(name)
             cursor.close()
+
+            # pre-select staff in edit mode
+            if self._prefill_staff_id:
+                for name, sid in self.staff_map.items():
+                    if sid == self._prefill_staff_id:
+                        self.prescribed_combo.setCurrentText(name)
+                        break
         except Exception as e:
             print(f"Staff load error: {e}")
         finally:
             conn.close()
 
     def load_medicine_suggestions(self):
-        """
-        Pull existing medicine names from the DB to power autocomplete.
-        The field is still fully free-text — this just helps with common entries.
-        If the medicine table is dropped, this method is safely skipped.
-        """
         conn = get_connection()
         if not conn:
             return
@@ -232,12 +252,10 @@ class AddPrescriptionDialog(QDialog):
             )
             names = [row[0] for row in cursor.fetchall()]
             cursor.close()
-
             if names:
                 model = QStringListModel(names)
                 self.medicine_completer.setModel(model)
         except Exception:
-            # Table may not exist — autocomplete just won't suggest anything
             pass
         finally:
             conn.close()
@@ -280,7 +298,6 @@ class AddPrescriptionDialog(QDialog):
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.medicine_table.setItem(row, col, item)
 
-        # Clear fields for next entry
         self.medicine_input.clear()
         self.dosage_input.clear()
         self.frequency_input.clear()
@@ -297,11 +314,6 @@ class AddPrescriptionDialog(QDialog):
         self.medicine_table.removeRow(self.medicine_table.rowCount() - 1)
 
     def save(self):
-        if not self.medicines:
-            QMessageBox.warning(self, "No Medicines",
-                                "Please add at least one medicine.")
-            return
-
         staff_name = self.prescribed_combo.currentText()
         staff_id   = self.staff_map.get(staff_name)
         presc_date = self.date_input.date().toPyDate()
@@ -310,10 +322,41 @@ class AddPrescriptionDialog(QDialog):
             QMessageBox.warning(self, "Missing", "Please select who prescribed.")
             return
 
+        # ── EDIT MODE ─────────────────────────────────────────────────────────
+        if self.existing:
+            medicine_name = self.medicine_input.text().strip()
+            dosage        = self.dosage_input.text().strip()
+            frequency     = self.frequency_input.text().strip()
+            duration      = self.duration_input.text().strip()
+
+            if not all([medicine_name, dosage, frequency, duration]):
+                QMessageBox.warning(self, "Missing Fields",
+                    "Medicine, dosage, frequency, and duration are required.")
+                return
+
+            self.result_data = {
+                "staff_id":          staff_id,
+                "medicine_name":     medicine_name,
+                "dosage":            dosage,
+                "frequency":         frequency,
+                "duration":          duration,
+                "route":             self.route_input.text().strip() or None,
+                "timing":            self.timing_input.text().strip() or None,
+                "prescription_date": presc_date,
+                "notes":             self.notes_input.text().strip() or None,
+            }
+            self.accept()
+            return
+
+        # ── ADD MODE ──────────────────────────────────────────────────────────
+        if not self.medicines:
+            QMessageBox.warning(self, "No Medicines",
+                                "Please add at least one medicine.")
+            return
+
         conn = get_connection()
         if not conn:
             return
-
         try:
             cursor = conn.cursor()
             for med in self.medicines:
@@ -335,12 +378,10 @@ class AddPrescriptionDialog(QDialog):
                     med["route"]  or None,
                     med["timing"] or None,
                 ))
-
             conn.commit()
             cursor.close()
             QMessageBox.information(self, "Success", "Prescription saved successfully!")
             self.accept()
-
         except Exception as e:
             conn.rollback()
             QMessageBox.critical(self, "Error", f"Failed to save:\n{e}")

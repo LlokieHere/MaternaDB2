@@ -414,7 +414,7 @@ class DiagnosisDialog(QDialog):
 
 class LabReferralDialog(_BaseDialog):
     LAB_TYPES = [
-        "CBC", "Urinalysis", "Blood Typing", "Blood Sugar (FBS)",
+        "CBC", "Pap Smear", "Urinalysis", "Blood Typing", "Blood Sugar (FBS)",
         "HbsAg", "HIV Test", "Syphilis Test", "STI Screening",
         "Ultrasound", "GCT", "OGTT", "Other"
     ]
@@ -425,38 +425,58 @@ class LabReferralDialog(_BaseDialog):
         self.pregnancy_id = pregnancy_id
         self.existing = existing
 
-        self.f_date   = self._date()
-        self.f_type   = self._combo(self.LAB_TYPES)
-        self.f_result = self._combo(self.RESULTS)
-        self.f_notes  = QTextEdit()
-        self.f_notes.setFixedHeight(70)
-        self.f_notes.setPlaceholderText("Additional notes...")
-        self.f_notes.setStyleSheet(FIELD_STYLE)
+        self.f_collection_date = self._date()
+        self.f_date_sent       = self._date()
+        self.f_result_date     = self._date()
+        self.f_lab_name        = self._field("e.g. Materna Diagnostic Lab")
+        self.f_test_name       = self._combo(self.LAB_TYPES)
+        self.f_result          = self._combo(self.RESULTS)
+        self.f_remarks         = QTextEdit()
+        self.f_remarks.setFixedHeight(70)
+        self.f_remarks.setPlaceholderText("Additional remarks...")
+        self.f_remarks.setStyleSheet(FIELD_STYLE)
 
-        self._row("Date *",      self.f_date)
-        self._row("Lab / Test *", self.f_type)
-        self._row("Result",      self.f_result)
-        self._row("Notes",       self.f_notes)
+        self._row("Collection Date *", self.f_collection_date)
+        self._row("Date Sent *",       self.f_date_sent)
+        self._row("Result Date",       self.f_result_date)
+        self._row("Lab / Facility *",  self.f_lab_name)
+        self._row("Test Name *",       self.f_test_name)
+        self._row("Result",            self.f_result)
+        self._row("Remarks",           self.f_remarks)
 
         if existing:
-            d = existing.get("lab_date")
-            if d:
-                self.f_date.setDate(QDate.fromString(str(d), "yyyy-MM-dd"))
-            idx = self.f_type.findText(existing.get("lab_type", ""))
-            if idx >= 0: self.f_type.setCurrentIndex(idx)
+            for field, col in [
+                (self.f_collection_date, "collection_date"),
+                (self.f_date_sent,       "date_sent"),
+                (self.f_result_date,     "result_date"),
+            ]:
+                d = existing.get(col)
+                if d:
+                    field.setDate(QDate.fromString(str(d), "yyyy-MM-dd"))
+            self.f_lab_name.setText(existing.get("lab_name", "") or "")
+            idx = self.f_test_name.findText(existing.get("test_name", ""))
+            if idx >= 0: self.f_test_name.setCurrentIndex(idx)
             idx = self.f_result.findText(existing.get("result", ""))
             if idx >= 0: self.f_result.setCurrentIndex(idx)
-            self.f_notes.setPlainText(existing.get("notes", "") or "")
+            self.f_remarks.setPlainText(existing.get("remarks", "") or "")
 
         self._add_buttons(self._on_save)
 
     def _on_save(self):
+        lab_name  = self.f_lab_name.text().strip()
+        test_name = self.f_test_name.currentText()
+        if not lab_name:
+            QMessageBox.warning(self, "Missing", "Lab / Facility name is required.")
+            return
         self.result_data = {
-            "pregnancy_id": self.pregnancy_id,
-            "lab_date":     self.f_date.date().toString("yyyy-MM-dd"),
-            "lab_type":     self.f_type.currentText(),
-            "result":       self.f_result.currentText(),
-            "notes":        self.f_notes.toPlainText().strip() or None,
+            "pregnancy_id":    self.pregnancy_id,
+            "collection_date": self.f_collection_date.date().toString("yyyy-MM-dd"),
+            "date_sent":       self.f_date_sent.date().toString("yyyy-MM-dd"),
+            "result_date":     self.f_result_date.date().toString("yyyy-MM-dd"),
+            "lab_name":        lab_name,
+            "test_name":       test_name,
+            "result":          self.f_result.currentText(),
+            "remarks":         self.f_remarks.toPlainText().strip() or None,
         }
         self.accept()
 
@@ -467,58 +487,94 @@ class LabReferralDialog(_BaseDialog):
 
 class MedicationDialog(_BaseDialog):
     ROUTES = ["Oral", "IV", "IM", "Topical", "Sublingual", "Other"]
+    TIMINGS = ["Before meal", "After meal", "With meal", "Bedtime", "As needed"]
 
-    def __init__(self, pregnancy_id, existing=None, parent=None):
+    def __init__(self, patient_id, existing=None, parent=None):
         super().__init__("Edit Medication" if existing else "Add Medication", parent)
-        self.pregnancy_id = pregnancy_id
-        self.existing = existing
+        self.patient_id = patient_id
+        self.existing   = existing
 
-        self.f_name    = self._field("e.g. Ferrous Sulfate")
-        self.f_dosage  = self._field("e.g. 325 mg")
-        self.f_freq    = self._field("e.g. Once daily")
-        self.f_route   = self._combo(self.ROUTES)
-        self.f_start   = self._date()
-        self.f_end     = self._date(QDate.currentDate().addDays(30))
-        self.f_notes   = self._field("Optional notes")
+        self.f_name     = self._field("e.g. Ferrous Sulfate")
+        self.f_dosage   = self._field("e.g. 325 mg")
+        self.f_freq     = self._field("e.g. Once daily")
+        self.f_duration = self._field("e.g. 7 days, 2 weeks")
+        self.f_route    = self._combo(self.ROUTES)
+        self.f_timing   = self._combo(self.TIMINGS)
+        self.f_date     = self._date()
+        self.f_notes    = self._field("Optional notes")
 
-        self._row("Medicine Name *", self.f_name)
-        self._row("Dosage *",        self.f_dosage)
-        self._row("Frequency *",     self.f_freq)
-        self._row("Route",           self.f_route)
-        self._row("Start Date",      self.f_start)
-        self._row("End Date",        self.f_end)
-        self._row("Notes",           self.f_notes)
+        # staff dropdown
+        self._staff_map = {}
+        self.f_staff = self._combo([])
+        conn = get_connection()
+        if conn:
+            try:
+                cur = conn.cursor()
+                cur.execute("""
+                    SELECT staff_id,
+                           CONCAT(first_name, ' ', last_name, ' (', role, ')')
+                    FROM staff WHERE status = 'Active'
+                    ORDER BY last_name, first_name
+                """)
+                for sid, name in cur.fetchall():
+                    self._staff_map[name] = sid
+                    self.f_staff.addItem(name)
+                conn.close()
+            except Exception as e:
+                print(f"staff load error: {e}")
+                if conn: conn.close()
+
+        self._row("Medicine Name *",  self.f_name)
+        self._row("Dosage *",         self.f_dosage)
+        self._row("Frequency *",      self.f_freq)
+        self._row("Duration *",       self.f_duration)
+        self._row("Route",            self.f_route)
+        self._row("Timing",           self.f_timing)
+        self._row("Prescribed By *",  self.f_staff)
+        self._row("Prescription Date", self.f_date)
+        self._row("Notes",            self.f_notes)
 
         if existing:
             self.f_name.setText(existing.get("medicine_name", ""))
             self.f_dosage.setText(existing.get("dosage", ""))
             self.f_freq.setText(existing.get("frequency", ""))
-            idx = self.f_route.findText(existing.get("route", ""))
+            self.f_duration.setText(existing.get("duration", ""))
+            idx = self.f_route.findText(existing.get("route", "") or "")
             if idx >= 0: self.f_route.setCurrentIndex(idx)
-            d = existing.get("start_date")
-            if d: self.f_start.setDate(QDate.fromString(str(d), "yyyy-MM-dd"))
-            d = existing.get("end_date")
-            if d: self.f_end.setDate(QDate.fromString(str(d), "yyyy-MM-dd"))
+            idx = self.f_timing.findText(existing.get("timing", "") or "")
+            if idx >= 0: self.f_timing.setCurrentIndex(idx)
+            saved_staff = existing.get("staff_display", "")
+            idx = self.f_staff.findText(saved_staff)
+            if idx >= 0: self.f_staff.setCurrentIndex(idx)
+            d = existing.get("prescription_date")
+            if d: self.f_date.setDate(QDate.fromString(str(d), "yyyy-MM-dd"))
             self.f_notes.setText(existing.get("notes", "") or "")
 
         self._add_buttons(self._on_save)
 
     def _on_save(self):
-        name = self.f_name.text().strip()
-        dosage = self.f_dosage.text().strip()
-        freq = self.f_freq.text().strip()
-        if not all([name, dosage, freq]):
-            QMessageBox.warning(self, "Missing", "Medicine name, dosage, and frequency are required.")
+        name     = self.f_name.text().strip()
+        dosage   = self.f_dosage.text().strip()
+        freq     = self.f_freq.text().strip()
+        duration = self.f_duration.text().strip()
+        staff_name = self.f_staff.currentText()
+        staff_id   = self._staff_map.get(staff_name)
+
+        if not all([name, dosage, freq, duration, staff_id]):
+            QMessageBox.warning(self, "Missing",
+                "Medicine name, dosage, frequency, duration, and prescriber are required.")
             return
         self.result_data = {
-            "pregnancy_id":  self.pregnancy_id,
-            "medicine_name": name,
-            "dosage":        dosage,
-            "frequency":     freq,
-            "route":         self.f_route.currentText(),
-            "start_date":    self.f_start.date().toString("yyyy-MM-dd"),
-            "end_date":      self.f_end.date().toString("yyyy-MM-dd"),
-            "notes":         self.f_notes.text().strip() or None,
+            "medicine_name":     name,
+            "dosage":            dosage,
+            "frequency":         freq,
+            "duration":          duration,
+            "route":             self.f_route.currentText(),
+            "timing":            self.f_timing.currentText(),
+            "staff_id":          staff_id,
+            "staff_display":     staff_name,
+            "prescription_date": self.f_date.date().toString("yyyy-MM-dd"),
+            "notes":             self.f_notes.text().strip() or None,
         }
         self.accept()
 
@@ -1020,7 +1076,8 @@ class PrenatalCareScreen(QMainWindow):
             item = lay.takeAt(0)
             widget = item.widget()
             if widget is not None:
-                widget.setParent(None)
+                widget.hide()
+                widget.deleteLater()
 
     # ── patient header ────────────────────────────────────────────────────────
     def load_patient_info_by_pregnancy(self):
@@ -1198,9 +1255,15 @@ class PrenatalCareScreen(QMainWindow):
         try:
             cur = conn.cursor()
             cur.execute("""
-                SELECT lab_id, pregnancy_id, lab_date, lab_type, result, notes
-                FROM lab_referral
-                WHERE pregnancy_id=%s ORDER BY lab_date DESC
+                SELECT lr.referral_id, lr.visit_id, lr.patient_id,
+                    lr.lab_name, lr.test_name,
+                    lr.collection_date, lr.date_sent, lr.result_date,
+                    lr.result, lr.remarks
+                FROM laboratory_referral lr
+                WHERE lr.patient_id = (
+                    SELECT patient_id FROM pregnancy WHERE pregnancy_id = %s
+                )
+                ORDER BY lr.collection_date DESC
             """, (self._pregnancy_id,))
             rows = cur.fetchall()
             conn.close()
@@ -1213,37 +1276,39 @@ class PrenatalCareScreen(QMainWindow):
             self._empty_msg("No lab results or referrals yet. Click '+ Add Lab' to add one.")
             return
 
-        cols = ["lab_id","pregnancy_id","lab_date","lab_type","result","notes"]
-        tbl = self._make_table(["Date","Lab / Test","Result","Notes","",""])
+        cols = ["referral_id", "visit_id", "patient_id", "lab_name", "test_name",
+                "collection_date", "date_sent", "result_date", "result", "remarks"]
+        tbl = self._make_table(["Collected", "Lab / Facility", "Test", "Result", "Remarks", "", ""])
         lay = self.ui.scroll_layout
         lay.insertWidget(lay.count() - 1, tbl)
 
         RESULT_COLORS = {
-            "Normal":   QColor(220,240,220),
-            "Abnormal": QColor(255,220,220),
-            "Pending":  QColor(255,243,205),
-            "Referred": QColor(220,230,255),
+            "Normal":   QColor(220, 240, 220),
+            "Abnormal": QColor(255, 220, 220),
+            "Pending":  QColor(255, 243, 205),
+            "Referred": QColor(220, 230, 255),
         }
 
         for row in rows:
             r = dict(zip(cols, row))
             ri = tbl.rowCount(); tbl.insertRow(ri)
-            tbl.setItem(ri, 0, self._cell(fmt_date(r["lab_date"])))
-            tbl.setItem(ri, 1, self._cell(r["lab_type"]))
-            res_item = self._cell(r["result"])
-            res_item.setBackground(QBrush(RESULT_COLORS.get(r["result"], QColor(240,230,240))))
-            tbl.setItem(ri, 2, res_item)
-            tbl.setItem(ri, 3, self._cell(r["notes"] or ""))
+            tbl.setItem(ri, 0, self._cell(fmt_date(r["collection_date"])))
+            tbl.setItem(ri, 1, self._cell(r["lab_name"] or ""))
+            tbl.setItem(ri, 2, self._cell(r["test_name"]))
+            res_item = self._cell(r["result"] or "Pending")
+            res_item.setBackground(QBrush(RESULT_COLORS.get(r["result"] or "Pending", QColor(240, 230, 240))))
+            tbl.setItem(ri, 3, res_item)
+            tbl.setItem(ri, 4, self._cell(r["remarks"] or ""))
 
             btn_e = QPushButton("Edit")
             btn_e.setStyleSheet("background-color: rgb(192,116,182); color: white; border-radius:4px; font-size:11px;")
             btn_e.clicked.connect((lambda rec: lambda: self._edit_lab(rec))(r))
-            tbl.setCellWidget(ri, 4, btn_e)
+            tbl.setCellWidget(ri, 5, btn_e)
 
             btn_d = QPushButton("Delete")
             btn_d.setStyleSheet("background-color: rgb(200,50,50); color: white; border-radius:4px; font-size:11px;")
             btn_d.clicked.connect((lambda rec: lambda: self._delete_lab(rec))(r))
-            tbl.setCellWidget(ri, 5, btn_d)
+            tbl.setCellWidget(ri, 6, btn_d)
 
     def _add_lab_referral(self):
         dlg = LabReferralDialog(self._pregnancy_id, parent=self)
@@ -1253,50 +1318,103 @@ class PrenatalCareScreen(QMainWindow):
     def _edit_lab(self, rec: dict):
         dlg = LabReferralDialog(self._pregnancy_id, existing=rec, parent=self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
-            self._update_lab(rec["lab_id"], dlg.result_data)
+            self._update_lab(rec["referral_id"], dlg.result_data)
 
     def _delete_lab(self, rec: dict):
-        if QMessageBox.question(self, "Delete", f"Delete this lab record ({rec.get('lab_type','')})?",
+        from PyQt6.QtCore import QTimer
+        # Step off the button's signal entirely before showing the dialog
+        QTimer.singleShot(0, lambda: self._confirm_delete_lab(rec))
+
+    def _confirm_delete_lab(self, rec: dict):
+        if QMessageBox.question(
+            self, "Delete",
+            f"Delete this lab record ({rec.get('test_name', '')})?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-        ) != QMessageBox.StandardButton.Yes: return
+        ) != QMessageBox.StandardButton.Yes:
+            return
         conn = get_connection()
         if not conn: return
         try:
             cur = conn.cursor()
-            cur.execute("DELETE FROM lab_referral WHERE lab_id=%s", (rec["lab_id"],))
+            cur.execute("DELETE FROM laboratory_referral WHERE referral_id = %s", (rec["referral_id"],))
             conn.commit(); conn.close()
-            self._switch_tab(TAB_LAB)
+            from PyQt6.QtCore import QTimer
+            QTimer.singleShot(0, lambda: self._switch_tab(TAB_LAB))
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
             if conn: conn.close()
 
-    def _save_lab(self, data):
+    def _save_lab(self, data: dict):
+        # Auto-fetch the most recent visit_id for this pregnancy
         conn = get_connection()
         if not conn: return
         try:
             cur = conn.cursor()
             cur.execute("""
-                INSERT INTO lab_referral (pregnancy_id, lab_date, lab_type, result, notes)
-                VALUES (%(pregnancy_id)s,%(lab_date)s,%(lab_type)s,%(result)s,%(notes)s)
-            """, data)
+                SELECT visit_id FROM prenatal_visit
+                WHERE pregnancy_id = %s
+                ORDER BY visit_date DESC LIMIT 1
+            """, (self._pregnancy_id,))
+            row = cur.fetchone()
+            if not row:
+                QMessageBox.warning(self, "No Visit",
+                    "Please record a prenatal visit before adding a lab referral.")
+                conn.close()
+                return
+            visit_id = row[0]
+
+            cur.execute("""
+                SELECT patient_id FROM pregnancy WHERE pregnancy_id = %s
+            """, (self._pregnancy_id,))
+            patient_row = cur.fetchone()
+            if not patient_row:
+                QMessageBox.critical(self, "Error", "Could not find patient for this pregnancy.")
+                conn.close()
+                return
+            patient_id = patient_row[0]
+
+            cur.execute("""
+                INSERT INTO laboratory_referral
+                    (visit_id, patient_id, lab_name, test_name,
+                    collection_date, date_sent, result_date, result, remarks)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                visit_id, patient_id,
+                data["lab_name"], data["test_name"],
+                data["collection_date"], data["date_sent"],
+                data["result_date"], data["result"], data["remarks"],
+            ))
             conn.commit(); conn.close()
-            self._switch_tab(TAB_LAB)
+            from PyQt6.QtCore import QTimer
+            QTimer.singleShot(0, lambda: self._switch_tab(TAB_LAB))
         except Exception as e:
             QMessageBox.critical(self, "Save Error", str(e))
             if conn: conn.close()
 
-    def _update_lab(self, lab_id, data):
+    def _update_lab(self, referral_id: int, data: dict):
         conn = get_connection()
         if not conn: return
         try:
             cur = conn.cursor()
             cur.execute("""
-                UPDATE lab_referral SET lab_date=%(lab_date)s, lab_type=%(lab_type)s,
-                    result=%(result)s, notes=%(notes)s
-                WHERE lab_id=%(lab_id)s
-            """, {**data, "lab_id": lab_id})
+                UPDATE laboratory_referral SET
+                    lab_name        = %s,
+                    test_name       = %s,
+                    collection_date = %s,
+                    date_sent       = %s,
+                    result_date     = %s,
+                    result          = %s,
+                    remarks         = %s
+                WHERE referral_id = %s
+            """, (
+                data["lab_name"], data["test_name"],
+                data["collection_date"], data["date_sent"],
+                data["result_date"], data["result"], data["remarks"],
+                referral_id,
+            ))
             conn.commit(); conn.close()
-            self._switch_tab(TAB_LAB)
+            from PyQt6.QtCore import QTimer
+            QTimer.singleShot(0, lambda: self._switch_tab(TAB_LAB))
         except Exception as e:
             QMessageBox.critical(self, "Update Error", str(e))
             if conn: conn.close()
@@ -1304,6 +1422,48 @@ class PrenatalCareScreen(QMainWindow):
     # ═══════════════════════════════════════════════════════════════════════
     # MEDICATIONS TAB  (no dedicated tab button in UI — wired via visit history btn for now)
     # ═══════════════════════════════════════════════════════════════════════
+    def _add_medication(self):
+        # get patient_id first
+        conn = get_connection()
+        patient_id = None
+        if conn:
+            try:
+                cur = conn.cursor()
+                cur.execute("SELECT patient_id FROM pregnancy WHERE pregnancy_id = %s",
+                            (self._pregnancy_id,))
+                row = cur.fetchone()
+                patient_id = row[0] if row else None
+                conn.close()
+            except Exception as e:
+                print(f"patient_id fetch error: {e}")
+                if conn: conn.close()
+
+        if not patient_id:
+            QMessageBox.critical(self, "Error", "Could not find patient for this pregnancy.")
+            return
+
+        dlg = MedicationDialog(patient_id, parent=self)
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            conn = get_connection()
+            if not conn: return
+            try:
+                cur = conn.cursor()
+                d = dlg.result_data
+                cur.execute("""
+                    INSERT INTO prescription
+                        (patient_id, prescribed_by, medicine_name, dosage,
+                        frequency, duration, route, timing,
+                        prescription_date, notes)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (patient_id, d["staff_id"], d["medicine_name"], d["dosage"],
+                    d["frequency"], d["duration"], d["route"], d["timing"],
+                    d["prescription_date"], d["notes"]))
+                conn.commit(); conn.close()
+                from PyQt6.QtCore import QTimer
+                QTimer.singleShot(0, lambda: self._switch_tab(TAB_MED))
+            except Exception as e:
+                QMessageBox.critical(self, "Save Error", str(e))
+                if conn: conn.close()
 
     def _load_medications(self):
         conn = get_connection()
@@ -1311,10 +1471,17 @@ class PrenatalCareScreen(QMainWindow):
         try:
             cur = conn.cursor()
             cur.execute("""
-                SELECT med_id, pregnancy_id, medicine_name, dosage, frequency,
-                       route, start_date, end_date, notes
-                FROM pregnancy_medication
-                WHERE pregnancy_id=%s ORDER BY start_date DESC
+                SELECT p.prescription_id,
+                       p.medicine_name, p.dosage, p.frequency, p.duration,
+                       p.route, p.timing, p.prescription_date, p.notes,
+                       p.prescribed_by,
+                       CONCAT(s.first_name, ' ', s.last_name, ' (', s.role, ')') AS staff_display
+                FROM prescription p
+                LEFT JOIN staff s ON p.prescribed_by = s.staff_id
+                WHERE p.patient_id = (
+                    SELECT patient_id FROM pregnancy WHERE pregnancy_id = %s
+                )
+                ORDER BY p.prescription_date DESC
             """, (self._pregnancy_id,))
             rows = cur.fetchall()
             conn.close()
@@ -1327,10 +1494,13 @@ class PrenatalCareScreen(QMainWindow):
             self._empty_msg("No medications recorded. Click '+ Add Medication' to add one.")
             return
 
-        cols = ["med_id","pregnancy_id","medicine_name","dosage","frequency","route","start_date","end_date","notes"]
-        tbl = self._make_table(["Medicine","Dosage","Frequency","Route","Start","End","Notes","",""])
-        lay = self.ui.scroll_layout
-        lay.insertWidget(lay.count() - 1, tbl)
+        cols = ["prescription_id", "medicine_name", "dosage", "frequency", "duration",
+                "route", "timing", "prescription_date", "notes",
+                "prescribed_by", "staff_display"]
+
+        tbl = self._make_table(["Medicine", "Dosage", "Frequency", "Duration",
+                                "Route", "Prescribed By", "Date", "Notes", "", ""])
+        self.ui.scroll_layout.insertWidget(self.ui.scroll_layout.count() - 1, tbl)
 
         for row in rows:
             r = dict(zip(cols, row))
@@ -1338,74 +1508,88 @@ class PrenatalCareScreen(QMainWindow):
             tbl.setItem(ri, 0, self._cell(r["medicine_name"]))
             tbl.setItem(ri, 1, self._cell(r["dosage"]))
             tbl.setItem(ri, 2, self._cell(r["frequency"]))
-            tbl.setItem(ri, 3, self._cell(r["route"]))
-            tbl.setItem(ri, 4, self._cell(fmt_date(r["start_date"])))
-            tbl.setItem(ri, 5, self._cell(fmt_date(r["end_date"])))
-            tbl.setItem(ri, 6, self._cell(r["notes"] or ""))
+            tbl.setItem(ri, 3, self._cell(r["duration"] or ""))
+            tbl.setItem(ri, 4, self._cell(r["route"] or ""))
+            tbl.setItem(ri, 5, self._cell(r["staff_display"] or ""))
+            tbl.setItem(ri, 6, self._cell(fmt_date(r["prescription_date"])))
+            tbl.setItem(ri, 7, self._cell(r["notes"] or ""))
 
             btn_e = QPushButton("Edit")
             btn_e.setStyleSheet("background-color: rgb(192,116,182); color: white; border-radius:4px; font-size:11px;")
             btn_e.clicked.connect((lambda rec: lambda: self._edit_medication(rec))(r))
-            tbl.setCellWidget(ri, 7, btn_e)
+            tbl.setCellWidget(ri, 8, btn_e)
 
             btn_d = QPushButton("Delete")
             btn_d.setStyleSheet("background-color: rgb(200,50,50); color: white; border-radius:4px; font-size:11px;")
             btn_d.clicked.connect((lambda rec: lambda: self._delete_medication(rec))(r))
-            tbl.setCellWidget(ri, 8, btn_d)
-
-    def _add_medication(self):
-        dlg = MedicationDialog(self._pregnancy_id, parent=self)
-        if dlg.exec() == QDialog.DialogCode.Accepted:
-            conn = get_connection()
-            if not conn: return
-            try:
-                cur = conn.cursor()
-                cur.execute("""
-                    INSERT INTO pregnancy_medication
-                        (pregnancy_id, medicine_name, dosage, frequency, route, start_date, end_date, notes)
-                    VALUES (%(pregnancy_id)s,%(medicine_name)s,%(dosage)s,%(frequency)s,
-                            %(route)s,%(start_date)s,%(end_date)s,%(notes)s)
-                """, dlg.result_data)
-                conn.commit(); conn.close()
-                self._switch_tab(TAB_MED)
-            except Exception as e:
-                QMessageBox.critical(self, "Save Error", str(e))
-                if conn: conn.close()
+            tbl.setCellWidget(ri, 9, btn_d)
 
     def _edit_medication(self, rec: dict):
-        dlg = MedicationDialog(self._pregnancy_id, existing=rec, parent=self)
+        conn = get_connection()
+        patient_id = None
+        if conn:
+            try:
+                cur = conn.cursor()
+                cur.execute("SELECT patient_id FROM pregnancy WHERE pregnancy_id = %s",
+                            (self._pregnancy_id,))
+                row = cur.fetchone()
+                patient_id = row[0] if row else None
+                conn.close()
+            except Exception as e:
+                print(f"patient_id fetch error: {e}")
+                if conn: conn.close()
+
+        dlg = MedicationDialog(patient_id, existing=rec, parent=self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
             conn = get_connection()
             if not conn: return
             try:
                 cur = conn.cursor()
+                d = dlg.result_data
                 cur.execute("""
-                    UPDATE pregnancy_medication SET medicine_name=%(medicine_name)s, dosage=%(dosage)s,
-                        frequency=%(frequency)s, route=%(route)s, start_date=%(start_date)s,
-                        end_date=%(end_date)s, notes=%(notes)s
-                    WHERE med_id=%(med_id)s
-                """, {**dlg.result_data, "med_id": rec["med_id"]})
+                    UPDATE prescription SET
+                        prescribed_by     = %s,
+                        medicine_name     = %s,
+                        dosage            = %s,
+                        frequency         = %s,
+                        duration          = %s,
+                        route             = %s,
+                        timing            = %s,
+                        prescription_date = %s,
+                        notes             = %s
+                    WHERE prescription_id = %s
+                """, (d["staff_id"], d["medicine_name"], d["dosage"],
+                    d["frequency"], d["duration"], d["route"], d["timing"],
+                    d["prescription_date"], d["notes"],
+                    rec["prescription_id"]))
                 conn.commit(); conn.close()
-                self._switch_tab(TAB_MED)
+                from PyQt6.QtCore import QTimer
+                QTimer.singleShot(0, lambda: self._switch_tab(TAB_MED))
             except Exception as e:
                 QMessageBox.critical(self, "Update Error", str(e))
                 if conn: conn.close()
 
     def _delete_medication(self, rec: dict):
-        if QMessageBox.question(self, "Delete", f"Delete {rec.get('medicine_name','')}?",
+        if QMessageBox.question(
+            self, "Delete", f"Delete {rec.get('medicine_name', '')}?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         ) != QMessageBox.StandardButton.Yes: return
+        from PyQt6.QtCore import QTimer
+        QTimer.singleShot(0, lambda: self._do_delete_medication(rec))
+
+    def _do_delete_medication(self, rec: dict):
         conn = get_connection()
         if not conn: return
         try:
             cur = conn.cursor()
-            cur.execute("DELETE FROM pregnancy_medication WHERE med_id=%s", (rec["med_id"],))
+            cur.execute("DELETE FROM prescription WHERE prescription_id = %s",
+                        (rec["prescription_id"],))
             conn.commit(); conn.close()
-            self._switch_tab(TAB_MED)
+            from PyQt6.QtCore import QTimer
+            QTimer.singleShot(0, lambda: self._switch_tab(TAB_MED))
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
             if conn: conn.close()
-
     # ═══════════════════════════════════════════════════════════════════════
     # DELIVERY & NEWBORN TAB
     # ═══════════════════════════════════════════════════════════════════════

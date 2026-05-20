@@ -134,11 +134,6 @@ class Ui_MainWindow(object):
         self.patient_name.setStyleSheet("color: rgb(255, 255, 255);\n"
 "font-size: 20px")
         self.patient_name.setObjectName("patient_name")
-        self.next_btn = QtWidgets.QPushButton(parent=self.frame_4)
-        self.next_btn.setGeometry(QtCore.QRect(850, 50, 111, 51))
-        self.next_btn.setStyleSheet("background-color: rgb(240, 230, 240);\n"
-"border-radius: 15px;")
-        self.next_btn.setObjectName("next_btn")
         self.layoutWidget = QtWidgets.QWidget(parent=self.frame_4)
         self.layoutWidget.setGeometry(QtCore.QRect(170, 60, 591, 52))
         self.layoutWidget.setObjectName("layoutWidget")
@@ -453,7 +448,7 @@ class Ui_MainWindow(object):
         self.label_3.setText(_translate("MainWindow", "LOGO"))
         self.label.setText(_translate("MainWindow", "Medical History"))
         self.patient_name.setText(_translate("MainWindow", "Emily Santos"))
-        self.next_btn.setText(_translate("MainWindow", "Next Patient"))
+
         self.patient_id_label.setText(_translate("MainWindow", "Patient ID:"))
         self.placeholder_p_ID.setText(_translate("MainWindow", "P-10234"))
         self.patient_id_label_2.setText(_translate("MainWindow", "Blood Type:"))

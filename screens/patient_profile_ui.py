@@ -254,15 +254,6 @@ class Ui_MainWindow(object):
 
         card_layout.addWidget(meta_widget, stretch=1)
 
-        # Next button
-        self.next_btn = QtWidgets.QPushButton("Next", parent=self.frame_4)
-        self.next_btn.setObjectName("next_btn")
-        self.next_btn.setFixedSize(111, 51)
-        self.next_btn.setStyleSheet(
-            "background-color: rgb(240, 230, 240); border-radius: 15px; border: none;"
-        )
-        card_layout.addWidget(self.next_btn, alignment=QtCore.Qt.AlignmentFlag.AlignVCenter)
-
         content_layout.addWidget(self.frame_4)
 
         # ── Tab bar ───────────────────────────────────────────────────────────

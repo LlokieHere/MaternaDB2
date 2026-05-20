@@ -233,21 +233,21 @@ class DashboardScreen(QMainWindow):
             """)
             self.ui.total_patient_label_3.setText(str(cursor.fetchone()[0]))
 
+            # count prenatal visits under ongoing pregnancies
             cursor.execute("""
                 SELECT COUNT(*)
-                FROM appointment a
-                JOIN appointment_purpose ap ON a.appointment_id = ap.appointment_id
-                WHERE a.status = 'Completed'
-                AND ap.purpose ILIKE '%prenatal%'
+                FROM prenatal_visit pv
+                JOIN pregnancy p ON pv.pregnancy_id = p.pregnancy_id
+                WHERE p.status = 'Ongoing'
             """)
             self.ui.total_patient_label_4.setText(str(cursor.fetchone()[0]))
 
+            # count deliveries (completed pregnancies)
             cursor.execute("""
                 SELECT COUNT(*)
-                FROM appointment a
-                JOIN appointment_purpose ap ON a.appointment_id = ap.appointment_id
-                WHERE a.status = 'Completed'
-                AND ap.purpose ILIKE '%deliver%'
+                FROM delivery_record dr
+                JOIN pregnancy p ON dr.pregnancy_id = p.pregnancy_id
+                WHERE p.status = 'Completed'
             """)
             self.ui.total_patient_label_5.setText(str(cursor.fetchone()[0]))
 

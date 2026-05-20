@@ -273,7 +273,7 @@ class pastPregnancyScreen(QMainWindow):
         self.ui.patient_name.setGeometry(170, 15, inner_w - 320, 30)
 
         # Next button
-        self.ui.next_btn.setGeometry(inner_w - 140, 50, 120, 41)
+
 
         # Info grid (Patient ID, Age, Registered, Blood Type, PhilHealth)
         info_w = inner_w - 320
